@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 
 // English language ID in the wger API — we filter translations to this manually,
 // since the API's language param doesn't actually restrict the translations array.
@@ -134,9 +135,10 @@ function ExerciseList() {
           const thumbnail = exercise.images[0]?.thumbnails?.medium
 
           return (
-            <div
+                       <Link
+              to={`/exercise/${exercise.id}`}
               key={exercise.id}
-              className="bg-slate-800 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform"
+              className="bg-slate-800 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform block"
             >
               {thumbnail ? (
                 <img
@@ -158,7 +160,7 @@ function ExerciseList() {
                   {exercise.category.name}
                 </span>
               </div>
-            </div>
+            </Link>
           )
         })}
       </div>
