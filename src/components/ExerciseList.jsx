@@ -9,6 +9,8 @@ function ExerciseList() {
   const [exercises, setExercises] = useState([])   // the data itself
   const [isLoading, setIsLoading] = useState(true)  // are we still waiting on the fetch?
   const [error, setError] = useState(null)          // did something go wrong?
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [selectedMuscle, setSelectedMuscle] = useState('All') // State for selected filters muscle and category
 
   useEffect(() => {
     fetch('https://wger.de/api/v2/exerciseinfo/?language=2&limit=20')
@@ -38,6 +40,37 @@ function ExerciseList() {
       (translation) => translation.language === ENGLISH_LANGUAGE_ID
     )
   }
+    // Build a de-duplicated, sorted list of category names from the fetched exercises.
+  // We derive this from the data itself instead of hardcoding categories,
+  // so the filter always matches what's actually available.
+  function getUniqueCategories() {
+    const names = exercises.map((exercise) => exercise.category.name)
+    return ['All', ...new Set(names)].sort()
+  }
+
+  // Same idea for muscles, but each exercise can have MULTIPLE muscles (primary array),
+  // so we flatten all of them into one list before de-duplicating.
+  function getUniqueMuscles() {
+    const allMuscleNames = exercises.flatMap((exercise) =>
+      exercise.muscles.map((muscle) => muscle.name)
+    )
+    return ['All', ...new Set(allMuscleNames)].sort()
+  }
+
+  // The actual filtering logic: an exercise passes through if it matches
+  // BOTH the selected category AND the selected muscle (when not set to "All").
+  function getFilteredExercises() {
+    return exercises.filter((exercise) => {
+      const matchesCategory =
+        selectedCategory === 'All' || exercise.category.name === selectedCategory
+
+      const matchesMuscle =
+        selectedMuscle === 'All' ||
+        exercise.muscles.some((muscle) => muscle.name === selectedMuscle)
+
+      return matchesCategory && matchesMuscle
+    })
+  }
 
   // ----- Render logic: handle each state explicitly -----
 
@@ -62,9 +95,35 @@ function ExerciseList() {
             <h1 className="text-4xl font-bold text-white mb-8 text-center">
         Feel The Burn — Exercise Library
       </h1>
+      {/* Filter controls */}
+      <div className="flex flex-wrap gap-4 justify-center mb-8 max-w-6xl mx-auto">
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-600 focus:outline-none focus:border-blue-500"
+        >
+          {getUniqueCategories().map((category) => (
+            <option key={category} value={category}>
+              {category === 'All' ? 'All Categories' : category}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={selectedMuscle}
+          onChange={(e) => setSelectedMuscle(e.target.value)}
+          className="bg-slate-800 text-white px-4 py-2 rounded-lg border border-slate-600 focus:outline-none focus:border-blue-500"
+        >
+          {getUniqueMuscles().map((muscle) => (
+            <option key={muscle} value={muscle}>
+              {muscle === 'All' ? 'All Muscles' : muscle}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {exercises.map((exercise) => {
+        {getFilteredExercises().map((exercise) => {
           const translation = getEnglishTranslation(exercise)
 
           // Skip rendering a card if there's no English name to show —
