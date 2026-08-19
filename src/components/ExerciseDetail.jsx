@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 
 const ENGLISH_LANGUAGE_ID = 2
 
-function ExerciseDetail() {
+function ExerciseDetail({ myWorkout, addToWorkout }) {
   // useParams reads the dynamic part of the URL — the ":id" we defined in App.jsx.
   // If the URL is /exercise/1962, then id === "1962" (always a string, even though it's a number).
   const { id } = useParams()
@@ -48,11 +48,27 @@ function ExerciseDetail() {
     )
   }
 
+  // Everything below this point can safely assume `exercise` is a real object,
+  // since the loading/error checks above already returned early otherwise.
+
   const translation = exercise.translations.find(
     (t) => t.language === ENGLISH_LANGUAGE_ID
   )
 
   const thumbnail = exercise.images[0]?.thumbnails?.medium
+
+  const isAlreadyAdded = myWorkout.some((item) => item.id === exercise.id)
+
+  // We only store the small subset of fields MyWorkout actually needs to display —
+  // no need to save the entire API response (full translations, license info, etc.)
+  function handleAddToWorkout() {
+    addToWorkout({
+      id: exercise.id,
+      name: translation?.name ?? 'Unnamed Exercise',
+      category: exercise.category.name,
+      thumbnail: thumbnail ?? null,
+    })
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 p-8">
@@ -82,6 +98,20 @@ function ExerciseDetail() {
         <span className="inline-block bg-blue-600 text-white text-sm px-3 py-1 rounded-full mb-4">
           {exercise.category.name}
         </span>
+
+        <div className="mb-4">
+          <button
+            onClick={handleAddToWorkout}
+            disabled={isAlreadyAdded}
+            className={`px-4 py-2 rounded-lg text-white font-medium ${
+              isAlreadyAdded
+                ? 'bg-slate-600 cursor-not-allowed'
+                : 'bg-green-600 hover:bg-green-500'
+            }`}
+          >
+            {isAlreadyAdded ? '✓ Added to My Workout' : '+ Add to My Workout'}
+          </button>
+        </div>
 
         {/* Description comes as HTML from the API (it can include <p>, <ol>, etc.)
             dangerouslySetInnerHTML renders that HTML directly — safe here because
