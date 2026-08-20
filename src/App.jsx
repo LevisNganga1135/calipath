@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
+import Home from './components/Home'
 import ExerciseList from './components/ExerciseList'
 import ExerciseDetail from './components/ExerciseDetail'
 import MyWorkout from './components/MyWorkout'
@@ -8,28 +9,20 @@ import Progress from './components/Progress'
 import Streak from './components/Streak'
 import BodyGoals from './components/BodyGoals'
 
-// A single, namespaced key for localStorage — prefixing with the app name
-// avoids collisions if this browser ever stores data for other local apps too
 const STORAGE_KEY = 'feelTheBurn.myWorkout'
 
 function App() {
-  // Lazy initializer: this function only runs ONCE, on the very first render,
-  // instead of on every re-render — important since reading localStorage
-  // is a side-effect-ish operation we don't want repeating unnecessarily.
   const [myWorkout, setMyWorkout] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
     return saved ? JSON.parse(saved) : []
   })
 
-  // Whenever myWorkout changes (add or remove), write the updated list
-  // back to localStorage so it survives a page refresh.
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(myWorkout))
   }, [myWorkout])
 
   function addToWorkout(exercise) {
     setMyWorkout((prev) => {
-      // Guard against adding the same exercise twice
       const alreadyAdded = prev.some((item) => item.id === exercise.id)
       if (alreadyAdded) return prev
       return [...prev, exercise]
@@ -40,34 +33,44 @@ function App() {
     setMyWorkout((prev) => prev.filter((item) => item.id !== exerciseId))
   }
 
+  // NavLink calls this function automatically with { isActive } for each link,
+  // letting us style the currently active page differently from the rest —
+  // this is the built-in React Router way to do "active nav" highlighting.
+  function navLinkClass({ isActive }) {
+    return isActive
+      ? 'text-white font-semibold border-b-2 border-blue-500 pb-1'
+      : 'text-slate-300 hover:text-white pb-1'
+  }
+
   return (
     <BrowserRouter>
-      <nav className="bg-slate-800 px-6 py-4 flex gap-6 items-center">
-        <Link to="/" className="text-white font-bold text-lg">
+      <nav className="bg-slate-800 px-6 py-4 flex gap-6 items-center flex-wrap">
+        <NavLink to="/" end className="text-white font-bold text-lg mr-2">
           Feel The Burn
-        </Link>
-        <Link to="/" className="text-slate-300 hover:text-white">
+        </NavLink>
+        <NavLink to="/exercises" className={navLinkClass}>
           Exercises
-        </Link>
-        <Link to="/my-workout" className="text-slate-300 hover:text-white">
+        </NavLink>
+        <NavLink to="/my-workout" className={navLinkClass}>
           My Workout ({myWorkout.length})
-        </Link>
-        <Link to="/profile" className="text-slate-300 hover:text-white">
+        </NavLink>
+        <NavLink to="/profile" className={navLinkClass}>
           Profile
-        </Link>
-                <Link to="/progress" className="text-slate-300 hover:text-white">
+        </NavLink>
+        <NavLink to="/progress" className={navLinkClass}>
           Progress
-        </Link>
-                <Link to="/streak" className="text-slate-300 hover:text-white">
+        </NavLink>
+        <NavLink to="/streak" className={navLinkClass}>
           🔥 Streak
-        </Link>
-                <Link to="/goals" className="text-slate-300 hover:text-white">
+        </NavLink>
+        <NavLink to="/goals" className={navLinkClass}>
           Body Goals
-        </Link>
+        </NavLink>
       </nav>
 
       <Routes>
-        <Route path="/" element={<ExerciseList />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/exercises" element={<ExerciseList />} />
         <Route
           path="/exercise/:id"
           element={
@@ -81,10 +84,10 @@ function App() {
           }
         />
         <Route path="/profile" element={<Profile />} />
-                <Route path="/progress" element={<Progress />} />
+        <Route path="/progress" element={<Progress />} />
         <Route path="/streak" element={<Streak />} />
         <Route path="/goals" element={<BodyGoals />} />
-       </Routes>
+      </Routes>
     </BrowserRouter>
   )
 }

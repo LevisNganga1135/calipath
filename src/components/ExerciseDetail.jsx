@@ -58,7 +58,7 @@ function ExerciseDetail({ myWorkout, addToWorkout }) {
     // wger sometimes returns thumbnails: null even when a full-size image exists,
   // so we fall back to the full image if the medium thumbnail isn't available
   const thumbnail = exercise.images[0]?.thumbnails?.medium ?? exercise.images[0]?.image
-  
+
   const isAlreadyAdded = myWorkout.some((item) => item.id === exercise.id)
 
   // We only store the small subset of fields MyWorkout actually needs to display —
@@ -77,7 +77,7 @@ function ExerciseDetail({ myWorkout, addToWorkout }) {
       <div className="max-w-3xl mx-auto">
         {/* Link back to the list — this is a client-side navigation,
             no full page reload like a normal <a> tag would cause */}
-        <Link to="/" className="text-blue-400 hover:underline mb-6 inline-block">
+               <Link to="/exercises" className="text-blue-400 hover:underline mb-6 inline-block">
           ← Back to all exercises
         </Link>
 

@@ -12,7 +12,7 @@ function MyWorkout({ myWorkout, removeFromWorkout }) {
             You haven't added any exercises yet.
           </p>
           <Link
-            to="/"
+            to="/exercises"
             className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-500"
           >
             Browse Exercises
