@@ -31,7 +31,9 @@ function ExerciseDetail({ myWorkout, addToWorkout }) {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-char flex items-center justify-center">
-        <p className="text-chalk text-xl font-display tracking-wide">Loading exercise...</p>
+        <p className="text-chalk text-xl font-display tracking-wide animate-pulse">
+          Loading exercise...
+        </p>
       </div>
     )
   }

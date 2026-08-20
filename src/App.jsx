@@ -32,6 +32,7 @@ function App() {
   })
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
     localStorage.setItem(WORKOUT_STORAGE_KEY, JSON.stringify(myWorkout))
@@ -101,57 +102,75 @@ function App() {
 
   return (
     <BrowserRouter>
-      <nav className="bg-charcoal px-6 py-4 flex gap-6 items-center flex-wrap border-b border-charcoal-light">
-        <NavLink
-          to="/"
-          end
-          className="font-display text-2xl tracking-wide text-chalk mr-2"
-        >
-          FEEL THE BURN
-        </NavLink>
-        <NavLink to="/exercises" className={navLinkClass}>
-          Exercises
-        </NavLink>
-        <NavLink to="/my-workout" className={navLinkClass}>
-          My Workout ({myWorkout.length})
-        </NavLink>
-        <NavLink to="/profile" className={navLinkClass}>
-          Profile
-        </NavLink>
-        <NavLink to="/progress" className={navLinkClass}>
-          Progress
-        </NavLink>
-        <NavLink to="/streak" className={navLinkClass}>
-          🔥 Streak
-        </NavLink>
-        <NavLink to="/goals" className={navLinkClass}>
-          Body Goals
-        </NavLink>
-        <NavLink to="/community" className={navLinkClass}>
-          Community
-        </NavLink>
+      <nav className="bg-charcoal px-6 py-4 border-b border-charcoal-light">
+        <div className="flex items-center justify-between">
+          <NavLink to="/" end className="font-display text-2xl tracking-wide text-chalk">
+            FEEL THE BURN
+          </NavLink>
 
-        {/* Auth section — pushed to the right */}
-        <div className="ml-auto flex items-center gap-3">
-          {currentUser ? (
-            <>
-              <span className="text-steel text-sm">Hi, {currentUser.name}</span>
+          {/* Hamburger toggle — only visible below lg breakpoint */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="lg:hidden text-chalk text-2xl"
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? '✕' : '☰'}
+          </button>
+
+          {/* Full nav — hidden on small screens, shown as flex row on lg+ */}
+          <div className="hidden lg:flex gap-6 items-center">
+            <NavLink to="/exercises" className={navLinkClass}>Exercises</NavLink>
+            <NavLink to="/my-workout" className={navLinkClass}>My Workout ({myWorkout.length})</NavLink>
+            <NavLink to="/profile" className={navLinkClass}>Profile</NavLink>
+            <NavLink to="/progress" className={navLinkClass}>Progress</NavLink>
+            <NavLink to="/streak" className={navLinkClass}>🔥 Streak</NavLink>
+            <NavLink to="/goals" className={navLinkClass}>Body Goals</NavLink>
+            <NavLink to="/community" className={navLinkClass}>Community</NavLink>
+            {currentUser ? (
+              <>
+                <span className="text-steel text-sm">Hi, {currentUser.name}</span>
+                <button onClick={handleLogout} className="text-steel hover:text-ember text-sm transition-colors">
+                  Log Out
+                </button>
+              </>
+            ) : (
               <button
-                onClick={handleLogout}
-                className="text-steel hover:text-ember text-sm transition-colors"
+                onClick={() => setIsAuthModalOpen(true)}
+                className="bg-ember hover:bg-ember-dark text-chalk px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
               >
-                Log Out
+                Log In
               </button>
-            </>
-          ) : (
-            <button
-              onClick={() => setIsAuthModalOpen(true)}
-              className="bg-ember hover:bg-ember-dark text-chalk px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
-            >
-              Log In
-            </button>
-          )}
+            )}
+          </div>
         </div>
+
+        {/* Mobile dropdown menu — only rendered when open, only visible below lg */}
+        {isMenuOpen && (
+          <div className="lg:hidden flex flex-col gap-4 mt-4 pb-2">
+            <NavLink to="/exercises" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>Exercises</NavLink>
+            <NavLink to="/my-workout" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>My Workout ({myWorkout.length})</NavLink>
+            <NavLink to="/profile" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>Profile</NavLink>
+            <NavLink to="/progress" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>Progress</NavLink>
+            <NavLink to="/streak" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>🔥 Streak</NavLink>
+            <NavLink to="/goals" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>Body Goals</NavLink>
+            <NavLink to="/community" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>Community</NavLink>
+            {currentUser ? (
+              <>
+                <span className="text-steel text-sm">Hi, {currentUser.name}</span>
+                <button onClick={() => { handleLogout(); setIsMenuOpen(false) }} className="text-steel hover:text-ember text-sm text-left">
+                  Log Out
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => { setIsAuthModalOpen(true); setIsMenuOpen(false) }}
+                className="bg-ember text-chalk px-4 py-1.5 rounded-lg text-sm font-medium w-fit"
+              >
+                Log In
+              </button>
+            )}
+          </div>
+        )}
       </nav>
 
       <AuthModal

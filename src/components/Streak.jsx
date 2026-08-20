@@ -108,7 +108,13 @@ function Streak() {
             </p>
           </div>
         </div>
-
+          
+        {trainedDates.length === 0 && (
+          <div className="bg-charcoal rounded-xl p-6 mb-6 text-center">
+            <p className="text-steel">No training days logged yet.</p>
+            <p className="text-steel/60 text-sm mt-1">Mark today as trained to start your streak.</p>
+          </div>
+        )}
         <div className="bg-charcoal rounded-xl p-6 mb-6 text-center">
           {isTodayLogged ? (
             <>

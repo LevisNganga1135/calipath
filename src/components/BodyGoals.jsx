@@ -12,21 +12,29 @@ const BODY_GOALS = {
     label: 'Bulk',
     description: 'Compound, high-load movements for building overall mass.',
     categories: ['Chest', 'Back', 'Legs', 'Shoulders'],
+    color: 'bg-red-600',
+    skills: ['Weighted Dips', 'Heavy Rows', 'Deep Push-Ups'],
   },
   athletic: {
     label: 'Athletic',
     description: 'Balanced full-body training for performance and conditioning.',
     categories: ['Cardio', 'Abs', 'Legs'],
+    color: 'bg-blue-600',
+    skills: ['Muscle-Up', 'Pistol Squat', 'Broad Jump'],
   },
   lean: {
     label: 'Lean',
     description: 'Higher-rep, cardio-leaning movements to support fat loss.',
     categories: ['Cardio', 'Abs'],
+    color: 'bg-green-600',
+    skills: ['High-Rep Circuits', 'Mountain Climbers', 'Burpees'],
   },
   muscular: {
     label: 'Muscular',
     description: 'Isolation-focused work for visible muscle definition.',
     categories: ['Arms', 'Chest', 'Back', 'Shoulders'],
+    color: 'bg-purple-600',
+    skills: ['Planche Progression', 'Front Lever', 'Archer Push-Ups'],
   },
 }
 
@@ -74,7 +82,7 @@ function BodyGoals() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-char flex items-center justify-center">
-        <p className="text-chalk text-xl">Loading exercises...</p>
+        <p className="text-chalk text-xl font-display tracking-wide animate-pulse">Loading exercises...</p>
       </div>
     )
   }
@@ -114,6 +122,13 @@ function BodyGoals() {
             >
               <p className="font-display text-lg tracking-wide mb-1">{goal.label}</p>
               <p className="text-xs opacity-90">{goal.description}</p>
+              <div className="flex flex-wrap gap-1 mt-2">
+                {goal.skills.map((skill) => (
+                  <span key={skill} className="text-[10px] bg-black/20 px-2 py-0.5 rounded-full">
+                    {skill}
+                  </span>
+                ))}
+              </div>
             </button>
           ))}
         </div>

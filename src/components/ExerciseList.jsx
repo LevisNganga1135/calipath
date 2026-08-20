@@ -62,7 +62,9 @@ function ExerciseList() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-char flex items-center justify-center">
-        <p className="text-chalk text-xl font-display tracking-wide">Loading exercises...</p>
+        <p className="text-chalk text-xl font-display tracking-wide animate-pulse">
+          Loading exercises...
+        </p>
       </div>
     )
   }

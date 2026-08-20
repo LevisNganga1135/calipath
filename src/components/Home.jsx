@@ -1,6 +1,30 @@
 import { Link } from 'react-router-dom'
 
 function Home() {
+      // Read streak data directly for a quick "welcome back" stat — same storage
+  // key/logic as Streak.jsx. Duplicated here since it's a tiny read-only calc;
+  // Phase 2/3 would fetch this from a real API instead.
+  function getCurrentStreak() {
+    const saved = localStorage.getItem('feelTheBurn.trainedDates')
+    const trainedDates = saved ? JSON.parse(saved) : []
+    let streak = 0
+    let cursor = new Date()
+    while (true) {
+      const y = cursor.getFullYear()
+      const m = String(cursor.getMonth() + 1).padStart(2, '0')
+      const d = String(cursor.getDate()).padStart(2, '0')
+      const dateStr = `${y}-${m}-${d}`
+      if (trainedDates.includes(dateStr)) {
+        streak++
+        cursor.setDate(cursor.getDate() - 1)
+      } else break
+    }
+    return streak
+  }
+
+  const savedWorkout = localStorage.getItem('feelTheBurn.myWorkout')
+  const workoutCount = savedWorkout ? JSON.parse(savedWorkout).length : 0
+  const currentStreak = getCurrentStreak()
   const features = [
     {
       to: '/exercises',
@@ -65,7 +89,20 @@ function Home() {
             className="inline-block bg-ember hover:bg-ember-dark text-chalk px-8 py-3 rounded-lg font-semibold text-lg transition-colors"
           >
             Browse Exercises
-          </Link>
+         </Link>
+
+          {(currentStreak > 0 || workoutCount > 0) && (
+            <div className="flex gap-6 justify-center mt-8 font-mono">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-ember">{currentStreak}</p>
+                <p className="text-steel text-xs">day streak</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gold">{workoutCount}</p>
+                <p className="text-steel text-xs">exercises saved</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
