@@ -8,6 +8,7 @@ import Profile from './components/Profile'
 import Progress from './components/Progress'
 import Streak from './components/Streak'
 import BodyGoals from './components/BodyGoals'
+import Footer from './components/Footer'
 
 const STORAGE_KEY = 'feelTheBurn.myWorkout'
 
@@ -92,6 +93,7 @@ function App() {
         <Route path="/streak" element={<Streak />} />
         <Route path="/goals" element={<BodyGoals />} />
       </Routes>
+       <Footer />
     </BrowserRouter>
   )
 }

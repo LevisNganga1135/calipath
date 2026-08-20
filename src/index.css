@@ -30,3 +30,28 @@ body {
   background: var(--color-ember);
   border-radius: 999px;
 }
+/* Footer marquee — scrolling motivational text loop, ember-themed. */
+.footer-marquee {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.footer-marquee-track {
+  display: inline-block;
+  animation: marquee-scroll 18s linear infinite;
+}
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-marquee-track {
+    animation: none;
+  }
+}
