@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react'
 
 const STORAGE_KEY = 'feelTheBurn.trainedDates'
 
-// Formats a Date object as YYYY-MM-DD in LOCAL time (not UTC), so "today"
-// always matches what the user's calendar actually shows them, regardless of timezone.
 function formatDateLocal(date) {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -12,7 +10,6 @@ function formatDateLocal(date) {
 }
 
 function Streak() {
-  // Array of date strings like ["2026-08-18", "2026-08-19", ...]
   const [trainedDates, setTrainedDates] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
     return saved ? JSON.parse(saved) : []
@@ -26,7 +23,7 @@ function Streak() {
   const isTodayLogged = trainedDates.includes(today)
 
   function markTodayTrained() {
-    if (isTodayLogged) return // guard against double-adding
+    if (isTodayLogged) return
     setTrainedDates((prev) => [...prev, today].sort())
   }
 
@@ -34,18 +31,15 @@ function Streak() {
     setTrainedDates((prev) => prev.filter((date) => date !== today))
   }
 
-  // ----- Streak calculation -----
-  // Walks backward day-by-day from today. As soon as we hit a day that's
-  // NOT in trainedDates, the current streak is broken and we stop counting.
   function calculateCurrentStreak() {
     let streak = 0
-    let cursor = new Date() // start from today and step backward
+    let cursor = new Date()
 
     while (true) {
       const dateStr = formatDateLocal(cursor)
       if (trainedDates.includes(dateStr)) {
         streak++
-        cursor.setDate(cursor.getDate() - 1) // move one day earlier
+        cursor.setDate(cursor.getDate() - 1)
       } else {
         break
       }
@@ -54,8 +48,6 @@ function Streak() {
     return streak
   }
 
-  // Longest streak ever achieved, scanning the full sorted history —
-  // finds the longest run of consecutive calendar dates in trainedDates.
   function calculateLongestStreak() {
     if (trainedDates.length === 0) return 0
 
@@ -72,9 +64,8 @@ function Streak() {
         current++
         longest = Math.max(longest, current)
       } else if (dayDiff > 1) {
-        current = 1 // streak broken, reset
+        current = 1
       }
-      // dayDiff === 0 shouldn't happen since dates are unique, but harmless if it does
     }
 
     return longest
@@ -83,7 +74,6 @@ function Streak() {
   const currentStreak = calculateCurrentStreak()
   const longestStreak = calculateLongestStreak()
 
-  // Last 7 days, for a simple visual calendar strip (oldest to newest, left to right)
   function getLast7Days() {
     const days = []
     for (let i = 6; i >= 0; i--) {
@@ -95,38 +85,39 @@ function Streak() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 p-8">
+    <div className="min-h-screen bg-char p-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-6">Streak Monitor</h1>
+        <h1 className="font-display text-5xl tracking-wide text-chalk mb-2">
+          STREAK MONITOR
+        </h1>
+        <div className="ember-bar mb-6"></div>
 
-        {/* Streak stats */}
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-slate-800 rounded-xl p-6 text-center">
-            <p className="text-slate-400 text-sm mb-1">Current Streak</p>
-            <p className="text-4xl font-bold text-orange-400">{currentStreak}</p>
-            <p className="text-slate-500 text-xs mt-1">
+          <div className="bg-charcoal rounded-xl p-6 text-center">
+            <p className="text-steel text-sm mb-1">Current Streak</p>
+            <p className="text-5xl font-bold text-ember font-mono">{currentStreak}</p>
+            <p className="text-steel/60 text-xs mt-1">
               {currentStreak === 1 ? 'day' : 'days'}
             </p>
           </div>
-          <div className="bg-slate-800 rounded-xl p-6 text-center">
-            <p className="text-slate-400 text-sm mb-1">Longest Streak</p>
-            <p className="text-4xl font-bold text-blue-400">{longestStreak}</p>
-            <p className="text-slate-500 text-xs mt-1">
+          <div className="bg-charcoal rounded-xl p-6 text-center">
+            <p className="text-steel text-sm mb-1">Longest Streak</p>
+            <p className="text-5xl font-bold text-gold font-mono">{longestStreak}</p>
+            <p className="text-steel/60 text-xs mt-1">
               {longestStreak === 1 ? 'day' : 'days'}
             </p>
           </div>
         </div>
 
-        {/* Today's action button */}
-        <div className="bg-slate-800 rounded-xl p-6 mb-6 text-center">
+        <div className="bg-charcoal rounded-xl p-6 mb-6 text-center">
           {isTodayLogged ? (
             <>
-              <p className="text-green-400 font-medium mb-3">
+              <p className="text-gold font-medium mb-3">
                 ✓ You've trained today — keep it up!
               </p>
               <button
                 onClick={unmarkToday}
-                className="text-slate-400 hover:text-slate-300 text-sm underline"
+                className="text-steel hover:text-chalk text-sm underline transition-colors"
               >
                 Undo
               </button>
@@ -134,16 +125,17 @@ function Streak() {
           ) : (
             <button
               onClick={markTodayTrained}
-              className="bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-lg font-medium"
+              className="bg-ember hover:bg-ember-dark text-chalk px-6 py-3 rounded-lg font-medium transition-colors"
             >
               Mark Today as Trained
             </button>
           )}
         </div>
 
-        {/* Last 7 days visual strip */}
-        <div className="bg-slate-800 rounded-xl p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">Last 7 Days</h2>
+        <div className="bg-charcoal rounded-xl p-6">
+          <h2 className="font-display text-2xl tracking-wide text-chalk mb-4">
+            LAST 7 DAYS
+          </h2>
           <div className="flex justify-between gap-2">
             {getLast7Days().map((dateStr) => {
               const trained = trainedDates.includes(dateStr)
@@ -152,12 +144,12 @@ function Streak() {
               })
               return (
                 <div key={dateStr} className="flex flex-col items-center gap-1">
-                  <span className="text-slate-500 text-xs">{dayLabel}</span>
+                  <span className="text-steel/60 text-xs">{dayLabel}</span>
                   <div
-                    className={`w-9 h-9 rounded-full flex items-center justify-center text-sm ${
+                    className={`w-9 h-9 rounded-full flex items-center justify-center text-sm transition-colors ${
                       trained
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-slate-700 text-slate-500'
+                        ? 'bg-ember text-chalk'
+                        : 'bg-charcoal-light text-steel/40'
                     }`}
                   >
                     {trained ? '✓' : ''}
