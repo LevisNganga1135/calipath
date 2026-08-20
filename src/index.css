@@ -27,6 +27,6 @@ body {
 .ember-bar {
   height: 4px;
   width: 64px;
-  background: linear-gradient(90deg, var(--color-ember), var(--color-gold));
+  background: var(--color-ember);
   border-radius: 999px;
 }
