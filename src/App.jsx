@@ -36,17 +36,21 @@ function App() {
   // NavLink calls this function automatically with { isActive } for each link,
   // letting us style the currently active page differently from the rest —
   // this is the built-in React Router way to do "active nav" highlighting.
-  function navLinkClass({ isActive }) {
+    function navLinkClass({ isActive }) {
     return isActive
-      ? 'text-white font-semibold border-b-2 border-blue-500 pb-1'
-      : 'text-slate-300 hover:text-white pb-1'
+      ? 'text-chalk font-semibold border-b-2 border-ember pb-1'
+      : 'text-steel hover:text-chalk pb-1 transition-colors'
   }
 
   return (
     <BrowserRouter>
-      <nav className="bg-slate-800 px-6 py-4 flex gap-6 items-center flex-wrap">
-        <NavLink to="/" end className="text-white font-bold text-lg mr-2">
-          Feel The Burn
+           <nav className="bg-charcoal px-6 py-4 flex gap-6 items-center flex-wrap border-b border-charcoal-light">
+        <NavLink
+          to="/"
+          end
+          className="font-display text-2xl tracking-wide text-chalk mr-2"
+        >
+          FEEL THE BURN
         </NavLink>
         <NavLink to="/exercises" className={navLinkClass}>
           Exercises

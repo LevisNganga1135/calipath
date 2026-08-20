@@ -1,1 +1,32 @@
 @import "tailwindcss";
+
+/* Design tokens — Tailwind v4 CSS-first theme config.
+   These become usable as classes like bg-char, text-ember, font-display, etc. */
+@theme {
+  --color-char: #121212;
+  --color-charcoal: #1c1c1f;
+  --color-charcoal-light: #26262b;
+  --color-ember: #ff5a1f;
+  --color-ember-dark: #d9431a;
+  --color-gold: #ffd23f;
+  --color-chalk: #f5f3ef;
+  --color-steel: #8a8a93;
+
+  --font-display: "Bebas Neue", sans-serif;
+  --font-body: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-char);
+}
+
+/* Signature element: the "ember bar" — a heat-gauge gradient divider,
+   used under headings to reinforce the "burn" theme without relying on animation */
+.ember-bar {
+  height: 4px;
+  width: 64px;
+  background: linear-gradient(90deg, var(--color-ember), var(--color-gold));
+  border-radius: 999px;
+}
