@@ -36,22 +36,37 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-char">
-      {/* Hero section */}
-      <div className="px-8 py-24 text-center border-b border-charcoal-light">
-        <h1 className="font-display text-7xl sm:text-8xl tracking-wide text-chalk mb-4">
-          FEEL THE BURN
-        </h1>
-        <div className="ember-bar mx-auto mb-6"></div>
-        <p className="text-steel text-lg max-w-xl mx-auto mb-8">
-          Your all-in-one calisthenics companion — browse exercises, plan your diet,
-          track your progress, and build a training streak.
-        </p>
-        <Link
-          to="/exercises"
-          className="inline-block bg-ember hover:bg-ember-dark text-chalk px-8 py-3 rounded-lg font-semibold text-lg transition-colors"
+      {/* Hero section — background video with a dark overlay so text stays readable */}
+      <div className="relative px-8 py-24 text-center border-b border-charcoal-light overflow-hidden">
+               <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-60"
         >
-          Browse Exercises
-        </Link>
+          <source src="/videos/hero-workout.mp4" type="video/mp4" />
+        </video>
+        {/* Dark gradient overlay — lighter than before so the video reads more clearly,
+            but still strong enough at the bottom to keep the headline/button legible */}
+        <div className="absolute inset-0 bg-gradient-to-b from-char/40 via-char/50 to-char"></div>
+
+        <div className="relative z-10">
+          <h1 className="font-display text-7xl sm:text-8xl tracking-wide text-chalk mb-4">
+            FEEL THE BURN
+          </h1>
+          <div className="ember-bar mx-auto mb-6"></div>
+          <p className="text-steel text-lg max-w-xl mx-auto mb-8">
+            Your all-in-one calisthenics companion — browse exercises, plan your diet,
+            track your progress, and build a training streak.
+          </p>
+          <Link
+            to="/exercises"
+            className="inline-block bg-ember hover:bg-ember-dark text-chalk px-8 py-3 rounded-lg font-semibold text-lg transition-colors"
+          >
+            Browse Exercises
+          </Link>
+        </div>
       </div>
 
       {/* Feature grid */}
