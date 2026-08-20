@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import ExerciseList from './components/ExerciseList'
 import ExerciseDetail from './components/ExerciseDetail'
 import MyWorkout from './components/MyWorkout'
+import Profile from './components/Profile'
 
 // A single, namespaced key for localStorage — prefixing with the app name
 // avoids collisions if this browser ever stores data for other local apps too
@@ -48,6 +49,9 @@ function App() {
         <Link to="/my-workout" className="text-slate-300 hover:text-white">
           My Workout ({myWorkout.length})
         </Link>
+        <Link to="/profile" className="text-slate-300 hover:text-white">
+          Profile
+        </Link>
       </nav>
 
       <Routes>
@@ -64,6 +68,7 @@ function App() {
             <MyWorkout myWorkout={myWorkout} removeFromWorkout={removeFromWorkout} />
           }
         />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </BrowserRouter>
   )
