@@ -12,25 +12,21 @@ const BODY_GOALS = {
     label: 'Bulk',
     description: 'Compound, high-load movements for building overall mass.',
     categories: ['Chest', 'Back', 'Legs', 'Shoulders'],
-    color: 'bg-red-600',
   },
   athletic: {
     label: 'Athletic',
     description: 'Balanced full-body training for performance and conditioning.',
     categories: ['Cardio', 'Abs', 'Legs'],
-    color: 'bg-blue-600',
   },
   lean: {
     label: 'Lean',
     description: 'Higher-rep, cardio-leaning movements to support fat loss.',
     categories: ['Cardio', 'Abs'],
-    color: 'bg-green-600',
   },
   muscular: {
     label: 'Muscular',
     description: 'Isolation-focused work for visible muscle definition.',
     categories: ['Arms', 'Chest', 'Back', 'Shoulders'],
-    color: 'bg-purple-600',
   },
 }
 
@@ -77,16 +73,16 @@ function BodyGoals() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <p className="text-white text-xl">Loading exercises...</p>
+      <div className="min-h-screen bg-char flex items-center justify-center">
+        <p className="text-chalk text-xl">Loading exercises...</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <p className="text-red-400 text-xl">Something went wrong: {error}</p>
+      <div className="min-h-screen bg-char flex items-center justify-center">
+        <p className="text-ember text-xl">Something went wrong: {error}</p>
       </div>
     )
   }
@@ -94,34 +90,35 @@ function BodyGoals() {
   const curatedExercises = getCuratedExercises()
 
   return (
-    <div className="min-h-screen bg-slate-900 p-8">
+    <div className="min-h-screen bg-char p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-2 text-center">
-          Train For Your Goal
+        <h1 className="font-display text-5xl tracking-wide text-chalk mb-2 text-center">
+          TRAIN FOR YOUR GOAL
         </h1>
-        <p className="text-slate-400 text-center mb-8">
+        <div className="ember-bar mb-6 mx-auto"></div>
+        <p className="text-steel text-center mb-8">
           Curated exercise sets based on common training-split principles.
         </p>
 
         {/* Goal selector cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {Object.entries(BODY_GOALS).map(([key, goal]) => (
             <button
               key={key}
               onClick={() => setSelectedGoal(key)}
-              className={`rounded-xl p-4 text-left transition-transform ${
+              className={`rounded-xl p-4 text-left transition-colors ${
                 selectedGoal === key
-                  ? `${goal.color} text-white scale-105`
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  ? 'bg-ember text-chalk'
+                  : 'bg-charcoal text-steel hover:bg-charcoal-light'
               }`}
             >
-              <p className="font-bold text-lg mb-1">{goal.label}</p>
+              <p className="font-display text-lg tracking-wide mb-1">{goal.label}</p>
               <p className="text-xs opacity-90">{goal.description}</p>
             </button>
           ))}
         </div>
 
-        <p className="text-slate-500 text-xs mb-6 text-center">
+        <p className="text-steel/60 text-xs mb-6 text-center">
           This mapping is based on general training-split principles (which
           exercise categories suit which goal), not a personalized AI
           recommendation.
@@ -129,7 +126,7 @@ function BodyGoals() {
 
         {/* Curated exercise grid */}
         {curatedExercises.length === 0 ? (
-          <p className="text-slate-400 text-center">
+          <p className="text-steel text-center">
             No exercises found for this goal in the current data set.
           </p>
         ) : (
@@ -145,7 +142,7 @@ function BodyGoals() {
                 <Link
                   to={`/exercise/${exercise.id}`}
                   key={exercise.id}
-                  className="bg-slate-800 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform block"
+                  className="bg-charcoal rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform block"
                 >
                   {thumbnail ? (
                     <img
@@ -154,15 +151,15 @@ function BodyGoals() {
                       className="w-full h-48 object-cover"
                     />
                   ) : (
-                    <div className="w-full h-48 bg-slate-700 flex items-center justify-center">
-                      <span className="text-slate-400">No image</span>
+                    <div className="w-full h-48 bg-charcoal-light flex items-center justify-center">
+                      <span className="text-steel">No image</span>
                     </div>
                   )}
                   <div className="p-4">
-                    <h2 className="text-xl font-semibold text-white mb-1">
+                    <h2 className="text-xl font-semibold text-chalk mb-1">
                       {translation.name}
                     </h2>
-                    <span className="inline-block bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                    <span className="inline-block bg-gold text-char text-xs px-2 py-1 rounded-full font-medium">
                       {exercise.category.name}
                     </span>
                   </div>
