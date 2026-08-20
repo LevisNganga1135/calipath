@@ -3,10 +3,7 @@ import { Link } from 'react-router-dom'
 
 const ENGLISH_LANGUAGE_ID = 2
 
-// Our own curated mapping from a body-type goal to relevant wger categories.
-// This is a training-principle-based mapping we define ourselves — wger's API
-// has no native "goal" concept, so we're building this logic on top of its
-// existing category data rather than fabricating per-exercise goal tags.
+
 const BODY_GOALS = {
   bulk: {
     label: 'Bulk',
@@ -45,8 +42,6 @@ function BodyGoals() {
   const [selectedGoal, setSelectedGoal] = useState('bulk')
 
   useEffect(() => {
-    // Pull a larger batch than the main list view since we're filtering down
-    // to a subset per goal — more source data means a better-populated result
     fetch('https://wger.de/api/v2/exerciseinfo/?language=2&limit=60')
       .then((response) => {
         if (!response.ok) {
@@ -70,8 +65,6 @@ function BodyGoals() {
     )
   }
 
-  // Filters the full exercise list down to just the categories relevant
-  // to the currently selected body-type goal
   function getCuratedExercises() {
     const relevantCategories = BODY_GOALS[selectedGoal].categories
     return exercises.filter((exercise) =>
@@ -108,7 +101,6 @@ function BodyGoals() {
           Curated exercise sets based on common training-split principles.
         </p>
 
-        {/* Goal selector cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {Object.entries(BODY_GOALS).map(([key, goal]) => (
             <button
@@ -139,7 +131,6 @@ function BodyGoals() {
           recommendation.
         </p>
 
-        {/* Curated exercise grid */}
         {curatedExercises.length === 0 ? (
           <p className="text-steel text-center">
             No exercises found for this goal in the current data set.
@@ -166,8 +157,11 @@ function BodyGoals() {
                       className="w-full h-48 object-cover"
                     />
                   ) : (
-                    <div className="w-full h-48 bg-charcoal-light flex items-center justify-center">
-                      <span className="text-steel">No image</span>
+                    <div className="w-full h-48 bg-gradient-to-br from-charcoal-light to-char flex flex-col items-center justify-center gap-2">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-10 h-10 text-steel/40">
+                        <path d="M2 12h2M4 8v8M6 6v12M8 10v4M16 10v4M18 6v12M20 8v8M22 12h-2" strokeLinecap="round" />
+                      </svg>
+                      <span className="text-steel/60 text-xs">No image available</span>
                     </div>
                   )}
                   <div className="p-4">

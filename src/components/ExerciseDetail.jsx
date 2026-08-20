@@ -31,9 +31,7 @@ function ExerciseDetail({ myWorkout, addToWorkout }) {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-char flex items-center justify-center">
-        <p className="text-chalk text-xl font-display tracking-wide animate-pulse">
-          Loading exercise...
-        </p>
+        <p className="text-chalk text-xl font-display tracking-wide animate-pulse">Loading exercise...</p>
       </div>
     )
   }
@@ -77,8 +75,11 @@ function ExerciseDetail({ myWorkout, addToWorkout }) {
             className="w-full max-h-96 object-contain bg-charcoal rounded-xl mb-6"
           />
         ) : (
-          <div className="w-full h-64 bg-charcoal rounded-xl flex items-center justify-center mb-6">
-            <span className="text-steel">No image available</span>
+          <div className="w-full h-64 bg-gradient-to-br from-charcoal to-char rounded-xl flex flex-col items-center justify-center gap-2 mb-6">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-12 h-12 text-steel/40">
+              <path d="M2 12h2M4 8v8M6 6v12M8 10v4M16 10v4M18 6v12M20 8v8M22 12h-2" strokeLinecap="round" />
+            </svg>
+            <span className="text-steel/60 text-sm">No image available</span>
           </div>
         )}
 

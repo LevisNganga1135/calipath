@@ -45,8 +45,10 @@ function MyWorkout({ myWorkout, removeFromWorkout }) {
                     className="w-16 h-16 object-cover rounded-lg"
                   />
                 ) : (
-                  <div className="w-16 h-16 bg-charcoal-light rounded-lg flex items-center justify-center text-steel text-xs">
-                    No image
+                  <div className="w-16 h-16 bg-gradient-to-br from-charcoal-light to-char rounded-lg flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6 text-steel/40">
+                      <path d="M2 12h2M4 8v8M6 6v12M8 10v4M16 10v4M18 6v12M20 8v8M22 12h-2" strokeLinecap="round" />
+                    </svg>
                   </div>
                 )}
                 <div>

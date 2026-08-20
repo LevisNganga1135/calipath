@@ -62,9 +62,7 @@ function ExerciseList() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-char flex items-center justify-center">
-        <p className="text-chalk text-xl font-display tracking-wide animate-pulse">
-          Loading exercises...
-        </p>
+        <p className="text-chalk text-xl font-display tracking-wide animate-pulse">Loading exercises...</p>
       </div>
     )
   }
@@ -83,8 +81,8 @@ function ExerciseList() {
         EXERCISE LIBRARY
       </h1>
       <div className="ember-bar mx-auto mb-8"></div>
+      
 
-      {/* Filter controls */}
       <div className="flex flex-wrap gap-4 justify-center mb-8 max-w-6xl mx-auto">
         <select
           value={selectedCategory}
@@ -132,8 +130,11 @@ function ExerciseList() {
                   className="w-full h-48 object-cover"
                 />
               ) : (
-                <div className="w-full h-48 bg-charcoal-light flex items-center justify-center">
-                  <span className="text-steel">No image</span>
+                <div className="w-full h-48 bg-gradient-to-br from-charcoal-light to-char flex flex-col items-center justify-center gap-2">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-10 h-10 text-steel/40">
+                    <path d="M2 12h2M4 8v8M6 6v12M8 10v4M16 10v4M18 6v12M20 8v8M22 12h-2" strokeLinecap="round" />
+                  </svg>
+                  <span className="text-steel/60 text-xs">No image available</span>
                 </div>
               )}
 
