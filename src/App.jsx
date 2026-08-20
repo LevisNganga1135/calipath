@@ -4,6 +4,7 @@ import ExerciseList from './components/ExerciseList'
 import ExerciseDetail from './components/ExerciseDetail'
 import MyWorkout from './components/MyWorkout'
 import Profile from './components/Profile'
+import Progress from './components/Progress'
 
 // A single, namespaced key for localStorage — prefixing with the app name
 // avoids collisions if this browser ever stores data for other local apps too
@@ -52,6 +53,9 @@ function App() {
         <Link to="/profile" className="text-slate-300 hover:text-white">
           Profile
         </Link>
+                <Link to="/progress" className="text-slate-300 hover:text-white">
+          Progress
+        </Link>
       </nav>
 
       <Routes>
@@ -69,6 +73,7 @@ function App() {
           }
         />
         <Route path="/profile" element={<Profile />} />
+                <Route path="/progress" element={<Progress />} />
       </Routes>
     </BrowserRouter>
   )
