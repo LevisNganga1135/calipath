@@ -6,6 +6,7 @@ import MyWorkout from './components/MyWorkout'
 import Profile from './components/Profile'
 import Progress from './components/Progress'
 import Streak from './components/Streak'
+import BodyGoals from './components/BodyGoals'
 
 // A single, namespaced key for localStorage — prefixing with the app name
 // avoids collisions if this browser ever stores data for other local apps too
@@ -60,6 +61,9 @@ function App() {
                 <Link to="/streak" className="text-slate-300 hover:text-white">
           🔥 Streak
         </Link>
+                <Link to="/goals" className="text-slate-300 hover:text-white">
+          Body Goals
+        </Link>
       </nav>
 
       <Routes>
@@ -79,6 +83,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
                 <Route path="/progress" element={<Progress />} />
         <Route path="/streak" element={<Streak />} />
+        <Route path="/goals" element={<BodyGoals />} />
        </Routes>
     </BrowserRouter>
   )
