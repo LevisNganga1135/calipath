@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -165,48 +165,91 @@ function Progress() {
         )}
 
         {logs.length >= 2 ? (
-          <div className="bg-charcoal rounded-xl p-6 mb-6">
+          <div className="bg-charcoal rounded-xl p-6 mb-6 border border-charcoal-light">
             <h2 className="font-display text-2xl tracking-wide text-chalk mb-4">
               TREND
             </h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#26262b" />
-                <XAxis dataKey="date" stroke="#8a8a93" />
-                <YAxis stroke="#8a8a93" />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#1c1c1f', border: '1px solid #26262b' }}
-                  labelStyle={{ color: '#f5f3ef' }}
+            <ResponsiveContainer width="100%" height={340}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                {/* Gradient fills — subtle color wash under each line for a more
+                    premium, "dashboard" feel instead of flat line strokes */}
+                <defs>
+                  <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ff5a1f" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#ff5a1f" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="measurementGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ffd23f" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#ffd23f" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+
+                <CartesianGrid strokeDasharray="3 3" stroke="#26262b" vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  stroke="#8a8a93"
+                  tick={{ fontSize: 12, fontFamily: 'Space Grotesk' }}
+                  tickLine={false}
+                  axisLine={{ stroke: '#26262b' }}
                 />
-                <Legend />
-                <Line
+                <YAxis
+                  stroke="#8a8a93"
+                  tick={{ fontSize: 12, fontFamily: 'JetBrains Mono' }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={40}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1c1c1f',
+                    border: '1px solid #26262b',
+                    borderRadius: '8px',
+                    fontFamily: 'Space Grotesk',
+                  }}
+                  labelStyle={{ color: '#f5f3ef', fontWeight: 600, marginBottom: 4 }}
+                  itemStyle={{ fontFamily: 'JetBrains Mono', fontSize: 13 }}
+                  cursor={{ stroke: '#8a8a93', strokeDasharray: '3 3' }}
+                />
+                <Legend
+                  wrapperStyle={{ fontFamily: 'Space Grotesk', fontSize: 13, paddingTop: 12 }}
+                  iconType="circle"
+                />
+
+                <Area
                   type="monotone"
                   dataKey="weightKg"
                   name="Actual Weight (kg)"
                   stroke="#ff5a1f"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
+                  fill="url(#weightGradient)"
                   connectNulls
+                  dot={{ r: 3, fill: '#ff5a1f', strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: '#ff5a1f', stroke: '#1c1c1f', strokeWidth: 2 }}
                 />
-                <Line
+                <Area
                   type="monotone"
                   dataKey="measurementCm"
                   name="Measurement (cm)"
                   stroke="#ffd23f"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
+                  fill="url(#measurementGradient)"
                   connectNulls
+                  dot={{ r: 3, fill: '#ffd23f', strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: '#ffd23f', stroke: '#1c1c1f', strokeWidth: 2 }}
                 />
                 {hasWeightData && (
-                  <Line
+                  <Area
                     type="monotone"
                     dataKey="projectedWeightKg"
                     name={`Projected (${projectionGoal})`}
                     stroke="#8a8a93"
                     strokeWidth={2}
-                    strokeDasharray="5 5"
+                    strokeDasharray="6 4"
+                    fill="none"
                     dot={false}
                   />
                 )}
-              </LineChart>
+              </AreaChart>
             </ResponsiveContainer>
             {hasWeightData && (
               <p className="text-steel/60 text-xs mt-4">
