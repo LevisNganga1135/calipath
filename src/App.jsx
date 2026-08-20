@@ -9,6 +9,7 @@ import Progress from './components/Progress'
 import Streak from './components/Streak'
 import BodyGoals from './components/BodyGoals'
 import Footer from './components/Footer'
+import Community from './components/Community'
 
 const STORAGE_KEY = 'feelTheBurn.myWorkout'
 
@@ -71,6 +72,9 @@ function App() {
         <NavLink to="/goals" className={navLinkClass}>
           Body Goals
         </NavLink>
+        <NavLink to="/community" className={navLinkClass}>
+          Community
+        </NavLink>
       </nav>
 
       <Routes>
@@ -92,6 +96,7 @@ function App() {
         <Route path="/progress" element={<Progress />} />
         <Route path="/streak" element={<Streak />} />
         <Route path="/goals" element={<BodyGoals />} />
+        <Route path="/community" element={<Community />} />
       </Routes>
        <Footer />
     </BrowserRouter>
