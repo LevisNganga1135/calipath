@@ -131,8 +131,10 @@ function ExerciseList() {
           // keeps the UI from displaying blank/broken cards
           if (!translation) return null
 
-          // Some exercises have no images at all — fall back gracefully
-          const thumbnail = exercise.images[0]?.thumbnails?.medium
+                       // wger sometimes returns thumbnails: null even when a full-size image exists,
+              // so we fall back to the full image if the medium thumbnail isn't available
+              const thumbnail =
+                exercise.images[0]?.thumbnails?.medium ?? exercise.images[0]?.image
 
           return (
                        <Link

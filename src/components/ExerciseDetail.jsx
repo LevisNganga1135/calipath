@@ -55,8 +55,10 @@ function ExerciseDetail({ myWorkout, addToWorkout }) {
     (t) => t.language === ENGLISH_LANGUAGE_ID
   )
 
-  const thumbnail = exercise.images[0]?.thumbnails?.medium
-
+    // wger sometimes returns thumbnails: null even when a full-size image exists,
+  // so we fall back to the full image if the medium thumbnail isn't available
+  const thumbnail = exercise.images[0]?.thumbnails?.medium ?? exercise.images[0]?.image
+  
   const isAlreadyAdded = myWorkout.some((item) => item.id === exercise.id)
 
   // We only store the small subset of fields MyWorkout actually needs to display —
