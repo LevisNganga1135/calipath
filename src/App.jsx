@@ -189,10 +189,15 @@ function App() {
             <ExerciseDetail myWorkout={myWorkout} addToWorkout={addToWorkout} />
           }
         />
-        <Route
+                <Route
           path="/my-workout"
           element={
-            <MyWorkout myWorkout={myWorkout} removeFromWorkout={removeFromWorkout} />
+            <MyWorkout
+              myWorkout={myWorkout}
+              removeFromWorkout={removeFromWorkout}
+              currentUser={currentUser}
+              onRequestLogin={() => setIsAuthModalOpen(true)}
+            />
           }
         />
         <Route path="/profile" element={<Profile />} />

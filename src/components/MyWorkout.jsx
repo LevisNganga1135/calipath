@@ -1,6 +1,30 @@
 import { Link } from 'react-router-dom'
 
-function MyWorkout({ myWorkout, removeFromWorkout }) {
+function MyWorkout({ myWorkout, removeFromWorkout, currentUser, onRequestLogin }) {
+  // Gate this page behind login — a saved workout is meaningless without an
+  // account to attach it to. Phase 2/3 will tie myWorkout to the real user's
+  // ID in the database instead of a shared localStorage key.
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-char p-8">
+        <div className="max-w-md mx-auto text-center mt-24">
+          <h1 className="font-display text-4xl tracking-wide text-chalk mb-4">
+            LOG IN REQUIRED
+          </h1>
+          <div className="ember-bar mx-auto mb-6"></div>
+          <p className="text-steel mb-6">
+            Sign in to build and save your own workout from the exercise library.
+          </p>
+          <button
+            onClick={onRequestLogin}
+            className="bg-ember hover:bg-ember-dark text-chalk px-6 py-2 rounded-lg font-medium transition-colors"
+          >
+            Log In / Sign Up
+          </button>
+        </div>
+      </div>
+    )
+  }
   if (myWorkout.length === 0) {
     return (
       <div className="min-h-screen bg-char p-8">
