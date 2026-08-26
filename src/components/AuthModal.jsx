@@ -1,14 +1,10 @@
 import { useState } from 'react'
 
-// MOCK AUTH — for Phase 1 only. Passwords are stored in plain text in
-// localStorage, which is NOT secure and must never be done in a real app.
-// This exists purely so the UI/UX is in place; Phase 2/3 will replace the
-// functions this modal calls with real API requests to a Flask backend
-// that hashes passwords properly and issues real session/JWT tokens.
 function AuthModal({ isOpen, onClose, onLogin, onSignup }) {
-  const [mode, setMode] = useState('login') // 'login' or 'signup'
+  const [mode, setMode] = useState('login')
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   if (!isOpen) return null
 
@@ -18,7 +14,7 @@ function AuthModal({ isOpen, onClose, onLogin, onSignup }) {
     setError('')
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
 
     if (mode === 'signup') {
@@ -26,35 +22,31 @@ function AuthModal({ isOpen, onClose, onLogin, onSignup }) {
         setError('Please fill in all fields.')
         return
       }
-      const result = onSignup(form)
-      if (!result.success) {
-        setError(result.message)
-        return
-      }
     } else {
       if (!form.email || !form.password) {
         setError('Please enter your email and password.')
         return
       }
-      const result = onLogin(form)
-      if (!result.success) {
-        setError(result.message)
-        return
-      }
     }
 
-    // Success — reset form and close
+    setIsSubmitting(true)
+    const result = mode === 'signup' ? await onSignup(form) : await onLogin(form)
+    setIsSubmitting(false)
+
+    if (!result.success) {
+      setError(result.message)
+      return
+    }
+
     setForm({ name: '', email: '', password: '' })
     onClose()
   }
 
   return (
-    // Backdrop — clicking outside the modal closes it
     <div
       className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
-      {/* stopPropagation so clicks inside the modal don't bubble up and close it */}
       <div
         className="bg-charcoal rounded-xl p-6 w-full max-w-sm"
         onClick={(e) => e.stopPropagation()}
@@ -63,7 +55,7 @@ function AuthModal({ isOpen, onClose, onLogin, onSignup }) {
           {mode === 'login' ? 'LOG IN' : 'SIGN UP'}
         </h2>
         <p className="text-steel text-xs mb-4">
-          Demo account only — stored on this device, not a real backend yet.
+          Your account is now stored on the server, not just this device.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -98,9 +90,10 @@ function AuthModal({ isOpen, onClose, onLogin, onSignup }) {
 
           <button
             type="submit"
-            className="w-full bg-ember hover:bg-ember-dark text-chalk py-2 rounded-lg font-semibold transition-colors"
+            disabled={isSubmitting}
+            className="w-full bg-ember hover:bg-ember-dark text-chalk py-2 rounded-lg font-semibold transition-colors disabled:opacity-60"
           >
-            {mode === 'login' ? 'Log In' : 'Create Account'}
+            {isSubmitting ? 'Please wait...' : mode === 'login' ? 'Log In' : 'Create Account'}
           </button>
         </form>
 

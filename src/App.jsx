@@ -12,9 +12,12 @@ import Footer from './components/Footer'
 import Community from './components/Community'
 import AuthModal from './components/AuthModal'
 
-const WORKOUT_STORAGE_KEY = 'feelTheBurn.myWorkout'
-const USERS_STORAGE_KEY = 'feelTheBurn.users' // MOCK user "database" — Phase 2/3 replaces this
-const CURRENT_USER_KEY = 'feelTheBurn.currentUserEmail'
+// Points at the local Flask dev server for now — this becomes the deployed
+// Render URL once the backend goes live (Day 7).
+const API_BASE = 'http://127.0.0.1:5555/api'
+
+const WORKOUT_STORAGE_KEY = 'feelTheBurn.myWorkout' // still local until Routines wiring is done
+const TOKEN_KEY = 'feelTheBurn.token' // the ONLY auth-related thing we keep in localStorage now
 
 function App() {
   const [myWorkout, setMyWorkout] = useState(() => {
@@ -22,21 +25,45 @@ function App() {
     return saved ? JSON.parse(saved) : []
   })
 
-  // currentUser is either null (logged out) or { name, email }
-  const [currentUser, setCurrentUser] = useState(() => {
-    const savedEmail = localStorage.getItem(CURRENT_USER_KEY)
-    if (!savedEmail) return null
-    const users = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || '[]')
-    const user = users.find((u) => u.email === savedEmail)
-    return user ? { name: user.name, email: user.email } : null
-  })
-
+  // currentUser is null until we've confirmed a valid token with the backend
+  const [currentUser, setCurrentUser] = useState(null)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
     localStorage.setItem(WORKOUT_STORAGE_KEY, JSON.stringify(myWorkout))
   }, [myWorkout])
+
+  // On first load, if a token exists, ask the backend "who am I?" via /auth/me.
+  // This is how login survives a page refresh now — the token persists,
+  // and we re-verify it's still valid rather than trusting stale local data.
+  useEffect(() => {
+    const token = localStorage.getItem(TOKEN_KEY)
+    if (!token) {
+      setIsCheckingAuth(false)
+      return
+    }
+
+    fetch(`${API_BASE}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error('Invalid or expired token')
+        return response.json()
+      })
+      .then((user) => {
+        setCurrentUser(user)
+      })
+      .catch(() => {
+        // Token is invalid/expired — clear it so we don't keep retrying
+        localStorage.removeItem(TOKEN_KEY)
+        setCurrentUser(null)
+      })
+      .finally(() => {
+        setIsCheckingAuth(false)
+      })
+  }, [])
 
   function addToWorkout(exercise) {
     setMyWorkout((prev) => {
@@ -50,50 +77,55 @@ function App() {
     setMyWorkout((prev) => prev.filter((item) => item.id !== exerciseId))
   }
 
-  // ----- MOCK AUTH functions -----
-  // These read/write a plain-text "users" array in localStorage. This is NOT
-  // secure and is only meant to establish the UI flow. In Phase 2/3, these
-  // functions get replaced with real fetch() calls to a Flask backend that
-  // hashes passwords and returns a proper session/JWT token.
+  // ----- Real auth functions — replace the old mock localStorage versions -----
 
-  function handleSignup({ name, email, password }) {
-    const users = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || '[]')
+  async function handleSignup({ name, email, password }) {
+    try {
+      const response = await fetch(`${API_BASE}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      })
+      const data = await response.json()
 
-    if (users.some((u) => u.email === email)) {
-      return { success: false, message: 'An account with this email already exists.' }
+      if (!response.ok) {
+        return { success: false, message: data.error || 'Signup failed' }
+      }
+
+      localStorage.setItem(TOKEN_KEY, data.token)
+      setCurrentUser(data.user)
+      return { success: true }
+    } catch (err) {
+      return { success: false, message: 'Network error — is the server running?' }
     }
-
-    const newUser = { name, email, password }
-    const updatedUsers = [...users, newUser]
-    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedUsers))
-    localStorage.setItem(CURRENT_USER_KEY, email)
-    setCurrentUser({ name, email })
-
-    return { success: true }
   }
 
-  function handleLogin({ email, password }) {
-    const users = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || '[]')
-    const user = users.find((u) => u.email === email && u.password === password)
+  async function handleLogin({ email, password }) {
+    try {
+      const response = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await response.json()
 
-    if (!user) {
-      return { success: false, message: 'Incorrect email or password.' }
+      if (!response.ok) {
+        return { success: false, message: data.error || 'Login failed' }
+      }
+
+      localStorage.setItem(TOKEN_KEY, data.token)
+      setCurrentUser(data.user)
+      return { success: true }
+    } catch (err) {
+      return { success: false, message: 'Network error — is the server running?' }
     }
-
-    localStorage.setItem(CURRENT_USER_KEY, user.email)
-    setCurrentUser({ name: user.name, email: user.email })
-
-    return { success: true }
   }
 
   function handleLogout() {
-    localStorage.removeItem(CURRENT_USER_KEY)
+    localStorage.removeItem(TOKEN_KEY)
     setCurrentUser(null)
   }
 
-  // NavLink calls this function automatically with { isActive } for each link,
-  // letting us style the currently active page differently from the rest —
-  // this is the built-in React Router way to do "active nav" highlighting.
   function navLinkClass({ isActive }) {
     return isActive
       ? 'text-chalk font-semibold border-b-2 border-ember pb-1'
@@ -108,7 +140,6 @@ function App() {
             FEEL THE BURN
           </NavLink>
 
-          {/* Hamburger toggle — only visible below lg breakpoint */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="lg:hidden text-chalk text-2xl"
@@ -117,7 +148,6 @@ function App() {
             {isMenuOpen ? '✕' : '☰'}
           </button>
 
-          {/* Full nav — hidden on small screens, shown as flex row on lg+ */}
           <div className="hidden lg:flex gap-6 items-center">
             <NavLink to="/exercises" className={navLinkClass}>Exercises</NavLink>
             <NavLink to="/my-workout" className={navLinkClass}>My Workout ({myWorkout.length})</NavLink>
@@ -126,7 +156,8 @@ function App() {
             <NavLink to="/streak" className={navLinkClass}>🔥 Streak</NavLink>
             <NavLink to="/goals" className={navLinkClass}>Body Goals</NavLink>
             <NavLink to="/community" className={navLinkClass}>Community</NavLink>
-            {currentUser ? (
+
+            {isCheckingAuth ? null : currentUser ? (
               <>
                 <span className="text-steel text-sm">Hi, {currentUser.name}</span>
                 <button onClick={handleLogout} className="text-steel hover:text-ember text-sm transition-colors">
@@ -144,7 +175,6 @@ function App() {
           </div>
         </div>
 
-        {/* Mobile dropdown menu — only rendered when open, only visible below lg */}
         {isMenuOpen && (
           <div className="lg:hidden flex flex-col gap-4 mt-4 pb-2">
             <NavLink to="/exercises" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>Exercises</NavLink>
@@ -189,7 +219,7 @@ function App() {
             <ExerciseDetail myWorkout={myWorkout} addToWorkout={addToWorkout} />
           }
         />
-                <Route
+        <Route
           path="/my-workout"
           element={
             <MyWorkout
