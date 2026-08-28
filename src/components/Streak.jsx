@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import confetti from 'canvas-confetti'
+
 
 const STORAGE_KEY = 'feelTheBurn.trainedDates'
 
@@ -23,9 +25,16 @@ function Streak() {
   const isTodayLogged = trainedDates.includes(today)
 
   function markTodayTrained() {
-    if (isTodayLogged) return
-    setTrainedDates((prev) => [...prev, today].sort())
-  }
+  if (isTodayLogged) return
+  setTrainedDates((prev) => [...prev, today].sort())
+
+  confetti({
+    particleCount: 120,
+    spread: 70,
+    origin: { y: 0.6 },
+    colors: ['#ff5a1f', '#ffd23f', '#f5f3ef'],
+  })
+}
 
   function unmarkToday() {
     setTrainedDates((prev) => prev.filter((date) => date !== today))
