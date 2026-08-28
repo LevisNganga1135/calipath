@@ -1,7 +1,13 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
+// Separate from Profile.sex (which drives BMR/calorie math) — this is purely
+// a lightweight, anonymous landing-page preference so we can personalize
+// the hero video before anyone logs in or fills out a profile.
+const GENDER_PREF_KEY = 'feelTheBurn.landingPref' // 'male' | 'female' | null
+
 function Home() {
-      // Read streak data directly for a quick "welcome back" stat — same storage
+  // Read streak data directly for a quick "welcome back" stat — same storage
   // key/logic as Streak.jsx. Duplicated here since it's a tiny read-only calc;
   // Phase 2/3 would fetch this from a real API instead.
   function getCurrentStreak() {
@@ -25,6 +31,32 @@ function Home() {
   const savedWorkout = localStorage.getItem('feelTheBurn.myWorkout')
   const workoutCount = savedWorkout ? JSON.parse(savedWorkout).length : 0
   const currentStreak = getCurrentStreak()
+
+  // Landing-page gender preference — null until the visitor picks one (or skips).
+  const [genderPref, setGenderPref] = useState(() =>
+    localStorage.getItem(GENDER_PREF_KEY)
+  )
+
+  // Whether to show the one-time toggle prompt. Only shown if no preference
+  // (including "skip") has been recorded yet.
+  const [showPrefPrompt, setShowPrefPrompt] = useState(
+    () => localStorage.getItem(GENDER_PREF_KEY) === null
+  )
+
+  function handleSelectPref(pref) {
+    // pref is 'male', 'female', or null (skip). We store even "skip" as an
+    // empty string so we can distinguish "explicitly skipped" from "never asked"
+    // — otherwise the prompt would keep reappearing on every visit.
+    localStorage.setItem(GENDER_PREF_KEY, pref ?? '')
+    setGenderPref(pref)
+    setShowPrefPrompt(false)
+  }
+
+  const heroVideoSrc =
+    genderPref === 'female'
+      ? '/videos/hero-workout-female.mp4'
+      : '/videos/hero-workout.mp4' // default/male, and fallback if unset or skipped
+
   const features = [
     {
       to: '/exercises',
@@ -62,14 +94,15 @@ function Home() {
     <div className="min-h-screen bg-char">
       {/* Hero section — background video with a dark overlay so text stays readable */}
       <div className="relative px-8 py-24 text-center border-b border-charcoal-light overflow-hidden">
-               <video
+        <video
+          key={heroVideoSrc} // forces the <video> to reload when the source changes
           autoPlay
           loop
           muted
           playsInline
           className="absolute inset-0 w-full h-full object-cover opacity-60"
         >
-          <source src="/videos/hero-workout.mp4" type="video/mp4" />
+          <source src={heroVideoSrc} type="video/mp4" />
         </video>
         {/* Dark gradient overlay — lighter than before so the video reads more clearly,
             but still strong enough at the bottom to keep the headline/button legible */}
@@ -84,12 +117,42 @@ function Home() {
             Your all-in-one calisthenics companion — browse exercises, plan your diet,
             track your progress, and build a training streak.
           </p>
+
+          {/* One-time landing-page personalization prompt. Independent of
+              Profile.sex — this only affects which hero video is shown,
+              nothing account- or medical-data-related. */}
+          {showPrefPrompt && (
+            <div className="flex flex-wrap gap-3 justify-center mb-8">
+              <span className="text-steel text-sm w-full mb-1">
+                Personalize your experience:
+              </span>
+              <button
+                onClick={() => handleSelectPref('male')}
+                className="bg-charcoal hover:bg-charcoal-light text-chalk px-4 py-2 rounded-lg text-sm transition-colors"
+              >
+                Male
+              </button>
+              <button
+                onClick={() => handleSelectPref('female')}
+                className="bg-charcoal hover:bg-charcoal-light text-chalk px-4 py-2 rounded-lg text-sm transition-colors"
+              >
+                Female
+              </button>
+              <button
+                onClick={() => handleSelectPref(null)}
+                className="text-steel hover:text-chalk text-sm underline transition-colors"
+              >
+                Skip
+              </button>
+            </div>
+          )}
+
           <Link
             to="/exercises"
             className="inline-block bg-ember hover:bg-ember-dark text-chalk px-8 py-3 rounded-lg font-semibold text-lg transition-colors"
           >
             Browse Exercises
-         </Link>
+          </Link>
 
           {(currentStreak > 0 || workoutCount > 0) && (
             <div className="flex gap-6 justify-center mt-8 font-mono">
