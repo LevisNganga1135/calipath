@@ -14,7 +14,7 @@ import AuthModal from './components/AuthModal'
 
 // Points at the local Flask dev server for now — this becomes the deployed
 // Render URL once the backend goes live (Day 7).
-const API_BASE = 'http://127.0.0.1:5555/api'
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:5555/api'
 
 const TOKEN_KEY = 'feelTheBurn.token' // the ONLY auth-related thing we keep in localStorage now
 
