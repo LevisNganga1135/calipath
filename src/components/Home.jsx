@@ -52,10 +52,16 @@ function Home() {
     setShowPrefPrompt(false)
   }
 
+  // Video selection:
+  // - 'male'   -> the original hero video
+  // - 'female' -> the female-personalized video
+  // - anything else (unset, or explicitly skipped) -> the neutral default video
   const heroVideoSrc =
-    genderPref === 'female'
+    genderPref === 'male'
+      ? '/videos/hero-workout.mp4'
+      : genderPref === 'female'
       ? '/videos/hero-workout-female.mp4'
-      : '/videos/hero-workout.mp4' // default/male, and fallback if unset or skipped
+      : '/videos/hero-workout-default.mp4'
 
   const features = [
     {

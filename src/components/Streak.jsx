@@ -30,21 +30,27 @@ function Streak() {
   const isTodayLogged = trainedDates.includes(today)
 
   function markTodayTrained() {
-    if (isTodayLogged) return
-    setTrainedDates((prev) => [...prev, today].sort())
+  if (isTodayLogged) return
+  setTrainedDates((prev) => [...prev, today].sort())
 
-    confetti({
-      particleCount: 120,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#ff5a1f', '#ffd23f', '#f5f3ef'],
-    })
+  confetti({
+    particleCount: 120,
+    spread: 70,
+    origin: { y: 0.6 },
+    colors: ['#ff5a1f', '#ffd23f', '#f5f3ef'],
+  })
 
-    // Trigger the flex logo pop-up animation, then hide it again once the
-    // CSS animation (1.8s) has finished playing.
-    setShowFlex(true)
-    setTimeout(() => setShowFlex(false), 1800)
-  }
+  // Celebration sound — fire-and-forget; if the browser blocks autoplay
+  // audio (rare here since it's triggered by a real user click) this
+  // fails silently rather than throwing.
+  const cheerSound = new Audio('/sounds/streak-cheer.mp3')
+  cheerSound.play().catch(() => {})
+
+  // Trigger the flex logo pop-up animation, then hide it again once the
+  // CSS animation (1.8s) has finished playing.
+  setShowFlex(true)
+  setTimeout(() => setShowFlex(false), 1800)
+}
 
   function unmarkToday() {
     setTrainedDates((prev) => prev.filter((date) => date !== today))
