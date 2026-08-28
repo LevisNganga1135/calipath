@@ -2,8 +2,7 @@ import { Link } from 'react-router-dom'
 
 function MyWorkout({ myWorkout, removeFromWorkout, currentUser, onRequestLogin }) {
   // Gate this page behind login — a saved workout is meaningless without an
-  // account to attach it to. Phase 2/3 will tie myWorkout to the real user's
-  // ID in the database instead of a shared localStorage key.
+  // account to attach it to.
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-char p-8">
@@ -25,6 +24,7 @@ function MyWorkout({ myWorkout, removeFromWorkout, currentUser, onRequestLogin }
       </div>
     )
   }
+
   if (myWorkout.length === 0) {
     return (
       <div className="min-h-screen bg-char p-8">
@@ -65,7 +65,7 @@ function MyWorkout({ myWorkout, removeFromWorkout, currentUser, onRequestLogin }
                 {exercise.thumbnail ? (
                   <img
                     src={exercise.thumbnail}
-                    alt={exercise.name}
+                    alt={exercise.exercise_name}
                     className="w-16 h-16 object-cover rounded-lg"
                   />
                 ) : (
@@ -76,7 +76,7 @@ function MyWorkout({ myWorkout, removeFromWorkout, currentUser, onRequestLogin }
                   </div>
                 )}
                 <div>
-                  <h2 className="text-chalk font-semibold">{exercise.name}</h2>
+                  <h2 className="text-chalk font-semibold">{exercise.exercise_name}</h2>
                   <span className="text-steel text-sm">{exercise.category}</span>
                 </div>
               </div>

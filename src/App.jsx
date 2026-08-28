@@ -16,24 +16,18 @@ import AuthModal from './components/AuthModal'
 // Render URL once the backend goes live (Day 7).
 const API_BASE = 'http://127.0.0.1:5555/api'
 
-const WORKOUT_STORAGE_KEY = 'feelTheBurn.myWorkout' // still local until Routines wiring is done
 const TOKEN_KEY = 'feelTheBurn.token' // the ONLY auth-related thing we keep in localStorage now
 
 function App() {
-  const [myWorkout, setMyWorkout] = useState(() => {
-    const saved = localStorage.getItem(WORKOUT_STORAGE_KEY)
-    return saved ? JSON.parse(saved) : []
-  })
+  // myWorkout now comes from the backend, not localStorage — it's fetched
+  // whenever we have a confirmed logged-in user (see the effect below).
+  const [myWorkout, setMyWorkout] = useState([])
 
   // currentUser is null until we've confirmed a valid token with the backend
   const [currentUser, setCurrentUser] = useState(null)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-
-  useEffect(() => {
-    localStorage.setItem(WORKOUT_STORAGE_KEY, JSON.stringify(myWorkout))
-  }, [myWorkout])
 
   // On first load, if a token exists, ask the backend "who am I?" via /auth/me.
   // This is how login survives a page refresh now — the token persists,
@@ -54,6 +48,7 @@ function App() {
       })
       .then((user) => {
         setCurrentUser(user)
+        fetchRoutines(token)
       })
       .catch(() => {
         // Token is invalid/expired — clear it so we don't keep retrying
@@ -65,19 +60,62 @@ function App() {
       })
   }, [])
 
-  function addToWorkout(exercise) {
-    setMyWorkout((prev) => {
-      const alreadyAdded = prev.some((item) => item.id === exercise.id)
-      if (alreadyAdded) return prev
-      return [...prev, exercise]
+  function fetchRoutines(token) {
+    fetch(`${API_BASE}/routines`, {
+      headers: { Authorization: `Bearer ${token}` },
     })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setMyWorkout(data))
+      .catch(() => setMyWorkout([]))
   }
 
-  function removeFromWorkout(exerciseId) {
-    setMyWorkout((prev) => prev.filter((item) => item.id !== exerciseId))
+  async function addToWorkout(exercise) {
+    const token = localStorage.getItem(TOKEN_KEY)
+    if (!token) return // shouldn't happen — button is only shown to logged-in users
+
+    // Guard against adding the same exercise twice
+    const alreadyAdded = myWorkout.some((item) => item.exercise_id === exercise.id)
+    if (alreadyAdded) return
+
+    try {
+      const response = await fetch(`${API_BASE}/routines`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          exercise_id: exercise.id,
+          exercise_name: exercise.name,
+          category: exercise.category,
+          thumbnail: exercise.thumbnail,
+        }),
+      })
+      if (!response.ok) return
+      const newRoutine = await response.json()
+      setMyWorkout((prev) => [...prev, newRoutine])
+    } catch (err) {
+      console.error('Failed to add routine:', err)
+    }
   }
 
-  // ----- Real auth functions — replace the old mock localStorage versions -----
+  async function removeFromWorkout(routineId) {
+    const token = localStorage.getItem(TOKEN_KEY)
+    if (!token) return
+
+    try {
+      const response = await fetch(`${API_BASE}/routines/${routineId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!response.ok) return
+      setMyWorkout((prev) => prev.filter((item) => item.id !== routineId))
+    } catch (err) {
+      console.error('Failed to remove routine:', err)
+    }
+  }
+
+  // ----- Real auth functions -----
 
   async function handleSignup({ name, email, password }) {
     try {
@@ -94,6 +132,7 @@ function App() {
 
       localStorage.setItem(TOKEN_KEY, data.token)
       setCurrentUser(data.user)
+      fetchRoutines(data.token)
       return { success: true }
     } catch (err) {
       return { success: false, message: 'Network error — is the server running?' }
@@ -115,6 +154,7 @@ function App() {
 
       localStorage.setItem(TOKEN_KEY, data.token)
       setCurrentUser(data.user)
+      fetchRoutines(data.token)
       return { success: true }
     } catch (err) {
       return { success: false, message: 'Network error — is the server running?' }
@@ -124,6 +164,7 @@ function App() {
   function handleLogout() {
     localStorage.removeItem(TOKEN_KEY)
     setCurrentUser(null)
+    setMyWorkout([])
   }
 
   function navLinkClass({ isActive }) {

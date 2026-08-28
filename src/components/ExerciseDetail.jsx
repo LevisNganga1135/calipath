@@ -50,7 +50,9 @@ function ExerciseDetail({ myWorkout, addToWorkout }) {
 
   const thumbnail = exercise.images[0]?.thumbnails?.medium ?? exercise.images[0]?.image
 
-  const isAlreadyAdded = myWorkout.some((item) => item.id === exercise.id)
+  // Routines from the backend store the wger exercise's id as `exercise_id`,
+  // not `id` (that field is the Routine row's own database id instead).
+  const isAlreadyAdded = myWorkout.some((item) => item.exercise_id === exercise.id)
 
   function handleAddToWorkout() {
     addToWorkout({
