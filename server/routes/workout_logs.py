@@ -38,6 +38,30 @@ def create_log():
     return jsonify(log.to_dict()), 201
 
 
+@logs_bp.route("/<int:log_id>", methods=["PATCH"])
+@jwt_required()
+def update_log(log_id):
+    user_id = get_jwt_identity()
+    log = WorkoutLog.query.get(log_id)
+
+    if not log:
+        return jsonify({"error": "Log not found"}), 404
+
+    if str(log.user_id) != str(user_id):
+        return jsonify({"error": "Not authorized to modify this log"}), 403
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No update data provided"}), 400
+
+    for field in ("date", "weight_kg", "measurement_cm"):
+        if field in data:
+            setattr(log, field, data[field])
+
+    db.session.commit()
+    return jsonify(log.to_dict()), 200
+
+
 @logs_bp.route("/<int:log_id>", methods=["DELETE"])
 @jwt_required()
 def delete_log(log_id):
@@ -52,4 +76,4 @@ def delete_log(log_id):
 
     db.session.delete(log)
     db.session.commit()
-    return jsonify({"message": "Log deleted"}), 200 
+    return jsonify({"message": "Log deleted"}), 200

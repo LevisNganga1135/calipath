@@ -28,6 +28,15 @@ function Progress({ currentUser, onRequestLogin }) {
 
   const [projectionGoal, setProjectionGoal] = useState('maintenance')
 
+  // Tracks which log entry (by id) is currently being edited, if any.
+  // Null means no entry is in edit mode.
+  const [editingLogId, setEditingLogId] = useState(null)
+  const [editForm, setEditForm] = useState({
+    date: '',
+    weightKg: '',
+    measurementCm: '',
+  })
+
   // Fetch logs from the backend once we know a user is logged in
   useEffect(() => {
     if (!currentUser) {
@@ -96,6 +105,60 @@ function Progress({ currentUser, onRequestLogin }) {
       setLogs((prev) => prev.filter((log) => log.id !== id))
     } catch (err) {
       console.error('Failed to delete log:', err)
+    }
+  }
+
+  // Enter edit mode for a specific log — pre-fills the edit form with its
+  // current values so the user is editing from the existing state, not blank fields.
+  function startEditing(log) {
+    setEditingLogId(log.id)
+    setEditForm({
+      date: log.date,
+      weightKg: log.weight_kg ?? '',
+      measurementCm: log.measurement_cm ?? '',
+    })
+  }
+
+  function cancelEditing() {
+    setEditingLogId(null)
+    setEditForm({ date: '', weightKg: '', measurementCm: '' })
+  }
+
+  function handleEditChange(e) {
+    const { name, value } = e.target
+    setEditForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  async function handleUpdate(id) {
+    if (!editForm.date || (!editForm.weightKg && !editForm.measurementCm)) return
+
+    const token = localStorage.getItem(TOKEN_KEY)
+
+    try {
+      const response = await fetch(`${API_BASE}/workout-logs/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          date: editForm.date,
+          weight_kg: editForm.weightKg ? Number(editForm.weightKg) : null,
+          measurement_cm: editForm.measurementCm ? Number(editForm.measurementCm) : null,
+        }),
+      })
+
+      if (!response.ok) return
+      const updatedLog = await response.json()
+
+      setLogs((prev) => {
+        const updated = prev.map((log) => (log.id === id ? updatedLog : log))
+        return updated.sort((a, b) => new Date(a.date) - new Date(b.date))
+      })
+
+      cancelEditing()
+    } catch (err) {
+      console.error('Failed to update log:', err)
     }
   }
 
@@ -341,23 +404,84 @@ function Progress({ currentUser, onRequestLogin }) {
               {[...logs].reverse().map((log) => (
                 <div
                   key={log.id}
-                  className="flex justify-between items-center bg-char rounded-lg p-3"
+                  className="bg-char rounded-lg p-3"
                 >
-                  <div className="flex gap-6 font-mono">
-                    <span className="text-chalk">{log.date}</span>
-                    {log.weight_kg && (
-                      <span className="text-ember">{log.weight_kg} kg</span>
-                    )}
-                    {log.measurement_cm && (
-                      <span className="text-gold">{log.measurement_cm} cm</span>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => handleDelete(log.id)}
-                    className="text-steel hover:text-ember text-sm transition-colors"
-                  >
-                    Delete
-                  </button>
+                  {editingLogId === log.id ? (
+                    // ----- Edit mode: inline form replacing the normal row -----
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                      <div>
+                        <label className="block text-steel text-xs mb-1">Date</label>
+                        <input
+                          type="date"
+                          name="date"
+                          value={editForm.date}
+                          onChange={handleEditChange}
+                          className="w-full bg-charcoal-light text-chalk px-2 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-ember"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-steel text-xs mb-1">Weight (kg)</label>
+                        <input
+                          type="number"
+                          name="weightKg"
+                          value={editForm.weightKg}
+                          onChange={handleEditChange}
+                          className="w-full bg-charcoal-light text-chalk px-2 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-ember"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-steel text-xs mb-1">Measurement (cm)</label>
+                        <input
+                          type="number"
+                          name="measurementCm"
+                          value={editForm.measurementCm}
+                          onChange={handleEditChange}
+                          className="w-full bg-charcoal-light text-chalk px-2 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-ember"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleUpdate(log.id)}
+                          className="bg-ember hover:bg-ember-dark text-chalk px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex-1"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={cancelEditing}
+                          className="bg-charcoal-light text-steel px-3 py-1.5 rounded-lg text-sm transition-colors flex-1"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    // ----- Normal display mode -----
+                    <div className="flex justify-between items-center">
+                      <div className="flex gap-6 font-mono">
+                        <span className="text-chalk">{log.date}</span>
+                        {log.weight_kg && (
+                          <span className="text-ember">{log.weight_kg} kg</span>
+                        )}
+                        {log.measurement_cm && (
+                          <span className="text-gold">{log.measurement_cm} cm</span>
+                        )}
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => startEditing(log)}
+                          className="text-steel hover:text-gold text-sm transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(log.id)}
+                          className="text-steel hover:text-ember text-sm transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
