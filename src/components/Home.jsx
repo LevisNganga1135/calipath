@@ -101,13 +101,13 @@ function Home() {
       {/* Hero section — background video with a dark overlay so text stays readable */}
       <div className="relative px-8 py-24 text-center border-b border-charcoal-light overflow-hidden">
         <video
-          key={heroVideoSrc} // forces the <video> to reload when the source changes
+          key={heroVideoSrc}
           autoPlay
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
-        >
+          className="absolute inset-0 w-full h-full object-cover opacity-90 brightness-125 contrast-110"
+>
           <source src={heroVideoSrc} type="video/mp4" />
         </video>
         {/* Dark gradient overlay — lighter than before so the video reads more clearly,
