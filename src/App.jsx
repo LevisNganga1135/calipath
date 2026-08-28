@@ -272,7 +272,10 @@ function App() {
           }
         />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/progress" element={<Progress />} />
+                <Route
+          path="/progress"
+          element={<Progress currentUser={currentUser} onRequestLogin={() => setIsAuthModalOpen(true)} />}
+        />
         <Route path="/streak" element={<Streak />} />
         <Route path="/goals" element={<BodyGoals />} />
         <Route path="/community" element={<Community />} />

@@ -10,16 +10,15 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-const PROGRESS_STORAGE_KEY = 'feelTheBurn.progressLogs'
+const API_BASE = 'http://127.0.0.1:5555/api'
+const TOKEN_KEY = 'feelTheBurn.token'
 
 const KCAL_PER_KG = 7700
 const DAILY_CALORIE_OFFSET = 500
 
-function Progress() {
-  const [logs, setLogs] = useState(() => {
-    const saved = localStorage.getItem(PROGRESS_STORAGE_KEY)
-    return saved ? JSON.parse(saved) : []
-  })
+function Progress({ currentUser, onRequestLogin }) {
+  const [logs, setLogs] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
 
   const [form, setForm] = useState({
     date: '',
@@ -29,37 +28,75 @@ function Progress() {
 
   const [projectionGoal, setProjectionGoal] = useState('maintenance')
 
+  // Fetch logs from the backend once we know a user is logged in
   useEffect(() => {
-    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(logs))
-  }, [logs])
+    if (!currentUser) {
+      setIsLoading(false)
+      return
+    }
+
+    const token = localStorage.getItem(TOKEN_KEY)
+    fetch(`${API_BASE}/workout-logs`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setLogs(data))
+      .catch(() => setLogs([]))
+      .finally(() => setIsLoading(false))
+  }, [currentUser])
 
   function handleChange(e) {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
 
     if (!form.date || (!form.weightKg && !form.measurementCm)) return
 
-    const newLog = {
-      id: crypto.randomUUID(),
-      date: form.date,
-      weightKg: form.weightKg ? Number(form.weightKg) : null,
-      measurementCm: form.measurementCm ? Number(form.measurementCm) : null,
+    const token = localStorage.getItem(TOKEN_KEY)
+
+    try {
+      const response = await fetch(`${API_BASE}/workout-logs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          date: form.date,
+          weight_kg: form.weightKg ? Number(form.weightKg) : null,
+          measurement_cm: form.measurementCm ? Number(form.measurementCm) : null,
+        }),
+      })
+
+      if (!response.ok) return
+      const newLog = await response.json()
+
+      setLogs((prev) => {
+        const updated = [...prev, newLog]
+        return updated.sort((a, b) => new Date(a.date) - new Date(b.date))
+      })
+
+      setForm({ date: '', weightKg: '', measurementCm: '' })
+    } catch (err) {
+      console.error('Failed to add log:', err)
     }
-
-    setLogs((prev) => {
-      const updated = [...prev, newLog]
-      return updated.sort((a, b) => new Date(a.date) - new Date(b.date))
-    })
-
-    setForm({ date: '', weightKg: '', measurementCm: '' })
   }
 
-  function handleDelete(id) {
-    setLogs((prev) => prev.filter((log) => log.id !== id))
+  async function handleDelete(id) {
+    const token = localStorage.getItem(TOKEN_KEY)
+    try {
+      const response = await fetch(`${API_BASE}/workout-logs/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!response.ok) return
+      setLogs((prev) => prev.filter((log) => log.id !== id))
+    } catch (err) {
+      console.error('Failed to delete log:', err)
+    }
   }
 
   function getDailyRateKgPerDay(goal) {
@@ -69,10 +106,10 @@ function Progress() {
   }
 
   function getChartData() {
-    const weightLogs = logs.filter((log) => log.weightKg !== null)
+    const weightLogs = logs.filter((log) => log.weight_kg !== null)
     if (weightLogs.length === 0) return logs
 
-    const startWeight = weightLogs[0].weightKg
+    const startWeight = weightLogs[0].weight_kg
     const startDate = new Date(weightLogs[0].date)
     const dailyRate = getDailyRateKgPerDay(projectionGoal)
 
@@ -86,8 +123,39 @@ function Progress() {
     })
   }
 
-  const hasWeightData = logs.some((log) => log.weightKg !== null)
+  const hasWeightData = logs.some((log) => log.weight_kg !== null)
   const chartData = getChartData()
+
+  // ----- Gate behind login, same pattern as My Workout -----
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-char p-8">
+        <div className="max-w-md mx-auto text-center mt-24">
+          <h1 className="font-display text-4xl tracking-wide text-chalk mb-4">
+            LOG IN REQUIRED
+          </h1>
+          <div className="ember-bar mx-auto mb-6"></div>
+          <p className="text-steel mb-6">
+            Sign in to log your weight and measurements and track progress over time.
+          </p>
+          <button
+            onClick={onRequestLogin}
+            className="bg-ember hover:bg-ember-dark text-chalk px-6 py-2 rounded-lg font-medium transition-colors"
+          >
+            Log In / Sign Up
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-char flex items-center justify-center">
+        <p className="text-chalk text-xl font-display tracking-wide animate-pulse">Loading progress...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-char p-8">
@@ -171,8 +239,6 @@ function Progress() {
             </h2>
             <ResponsiveContainer width="100%" height={340}>
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                {/* Gradient fills — subtle color wash under each line for a more
-                    premium, "dashboard" feel instead of flat line strokes */}
                 <defs>
                   <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#ff5a1f" stopOpacity={0.3} />
@@ -217,7 +283,7 @@ function Progress() {
 
                 <Area
                   type="monotone"
-                  dataKey="weightKg"
+                  dataKey="weight_kg"
                   name="Actual Weight (kg)"
                   stroke="#ff5a1f"
                   strokeWidth={2.5}
@@ -228,7 +294,7 @@ function Progress() {
                 />
                 <Area
                   type="monotone"
-                  dataKey="measurementCm"
+                  dataKey="measurement_cm"
                   name="Measurement (cm)"
                   stroke="#ffd23f"
                   strokeWidth={2.5}
@@ -279,11 +345,11 @@ function Progress() {
                 >
                   <div className="flex gap-6 font-mono">
                     <span className="text-chalk">{log.date}</span>
-                    {log.weightKg && (
-                      <span className="text-ember">{log.weightKg} kg</span>
+                    {log.weight_kg && (
+                      <span className="text-ember">{log.weight_kg} kg</span>
                     )}
-                    {log.measurementCm && (
-                      <span className="text-gold">{log.measurementCm} cm</span>
+                    {log.measurement_cm && (
+                      <span className="text-gold">{log.measurement_cm} cm</span>
                     )}
                   </div>
                   <button
