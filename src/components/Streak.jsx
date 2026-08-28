@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import confetti from 'canvas-confetti'
-
+import flexLogo from '../assets/flex-logo.svg'
 
 const STORAGE_KEY = 'feelTheBurn.trainedDates'
 
@@ -17,6 +17,11 @@ function Streak() {
     return saved ? JSON.parse(saved) : []
   })
 
+  // Controls whether the celebratory flex animation is currently showing.
+  // Set true on a successful "mark today" action, then auto-cleared after
+  // the animation finishes playing (see the setTimeout in markTodayTrained).
+  const [showFlex, setShowFlex] = useState(false)
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(trainedDates))
   }, [trainedDates])
@@ -25,16 +30,21 @@ function Streak() {
   const isTodayLogged = trainedDates.includes(today)
 
   function markTodayTrained() {
-  if (isTodayLogged) return
-  setTrainedDates((prev) => [...prev, today].sort())
+    if (isTodayLogged) return
+    setTrainedDates((prev) => [...prev, today].sort())
 
-  confetti({
-    particleCount: 120,
-    spread: 70,
-    origin: { y: 0.6 },
-    colors: ['#ff5a1f', '#ffd23f', '#f5f3ef'],
-  })
-}
+    confetti({
+      particleCount: 120,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#ff5a1f', '#ffd23f', '#f5f3ef'],
+    })
+
+    // Trigger the flex logo pop-up animation, then hide it again once the
+    // CSS animation (1.8s) has finished playing.
+    setShowFlex(true)
+    setTimeout(() => setShowFlex(false), 1800)
+  }
 
   function unmarkToday() {
     setTrainedDates((prev) => prev.filter((date) => date !== today))
@@ -95,6 +105,16 @@ function Streak() {
 
   return (
     <div className="min-h-screen bg-char p-8">
+      {/* Celebration overlay — only rendered while showFlex is true.
+          pointer-events: none (set in CSS) so it never blocks clicks underneath. */}
+      {showFlex && (
+        <img
+          src={flexLogo}
+          alt="Flexing logo"
+          className="flex-pop"
+        />
+      )}
+
       <div className="max-w-2xl mx-auto">
         <h1 className="font-display text-5xl tracking-wide text-chalk mb-2">
           STREAK MONITOR
