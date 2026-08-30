@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './components/Home'
 import ExerciseList from './components/ExerciseList'
 import ExerciseDetail from './components/ExerciseDetail'
 import MyWorkout from './components/MyWorkout'
+import LogWorkout from './components/LogWorkout'
 import Profile from './components/Profile'
 import Progress from './components/Progress'
 import Streak from './components/Streak'
@@ -11,7 +12,7 @@ import BodyGoals from './components/BodyGoals'
 import Footer from './components/Footer'
 import Community from './components/Community'
 import AuthModal from './components/AuthModal'
-import LogWorkout from './components/LogWorkout'
+import Sidebar from './components/Sidebar'
 
 // Points at the local Flask dev server for now — this becomes the deployed
 // Render URL once the backend goes live (Day 7).
@@ -31,8 +32,7 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   // On first load, if a token exists, ask the backend "who am I?" via /auth/me.
-  // This is how login survives a page refresh now — the token persists,
-  // and we re-verify it's still valid rather than trusting stale local data.
+ 
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY)
     if (!token) {
@@ -52,7 +52,7 @@ function App() {
         fetchRoutines(token)
       })
       .catch(() => {
-        // Token is invalid/expired — clear it so we don't keep retrying
+
         localStorage.removeItem(TOKEN_KEY)
         setCurrentUser(null)
       })
@@ -72,9 +72,10 @@ function App() {
 
   async function addToWorkout(exercise) {
     const token = localStorage.getItem(TOKEN_KEY)
-    if (!token) return // shouldn't happen — button is only shown to logged-in users
+    if (!token) return
 
-    // Guard against adding the same exercise twice
+
+   
     const alreadyAdded = myWorkout.some((item) => item.exercise_id === exercise.id)
     if (alreadyAdded) return
 
@@ -116,7 +117,7 @@ function App() {
     }
   }
 
-  // ----- Real auth functions -----
+
 
   async function handleSignup({ name, email, password }) {
     try {
@@ -168,82 +169,19 @@ function App() {
     setMyWorkout([])
   }
 
-  function navLinkClass({ isActive }) {
-    return isActive
-      ? 'text-chalk font-semibold border-b-2 border-ember pb-1'
-      : 'text-steel hover:text-chalk pb-1 transition-colors'
-  }
 
+  
   return (
     <BrowserRouter>
-      <nav className="bg-charcoal px-6 py-4 border-b border-charcoal-light">
-        <div className="flex items-center justify-between">
-          <NavLink to="/" end className="font-display text-2xl tracking-wide text-chalk">
-            FEEL THE BURN
-          </NavLink>
-
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="lg:hidden text-chalk text-2xl"
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? '✕' : '☰'}
-          </button>
-
-          <div className="hidden lg:flex gap-6 items-center">
-            <NavLink to="/exercises" className={navLinkClass}>Exercises</NavLink>
-            <NavLink to="/my-workout" className={navLinkClass}>My Workout ({myWorkout.length})</NavLink>
-            <NavLink to="/profile" className={navLinkClass}>Profile</NavLink>
-            <NavLink to="/progress" className={navLinkClass}>Progress</NavLink>
-            <NavLink to="/streak" className={navLinkClass}>🔥 Streak</NavLink>
-            <NavLink to="/goals" className={navLinkClass}>Body Goals</NavLink>
-            <NavLink to="/community" className={navLinkClass}>Community</NavLink>
-
-            {isCheckingAuth ? null : currentUser ? (
-              <>
-                <span className="text-steel text-sm">Hi, {currentUser.name}</span>
-                <button onClick={handleLogout} className="text-steel hover:text-ember text-sm transition-colors">
-                  Log Out
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => setIsAuthModalOpen(true)}
-                className="bg-ember hover:bg-ember-dark text-chalk px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
-              >
-                Log In
-              </button>
-            )}
-          </div>
-        </div>
-
-        {isMenuOpen && (
-          <div className="lg:hidden flex flex-col gap-4 mt-4 pb-2">
-            <NavLink to="/exercises" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>Exercises</NavLink>
-            <NavLink to="/my-workout" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>My Workout ({myWorkout.length})</NavLink>
-            <NavLink to="/profile" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>Profile</NavLink>
-            <NavLink to="/progress" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>Progress</NavLink>
-            <NavLink to="/streak" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>🔥 Streak</NavLink>
-            <NavLink to="/goals" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>Body Goals</NavLink>
-            <NavLink to="/community" className={navLinkClass} onClick={() => setIsMenuOpen(false)}>Community</NavLink>
-            {currentUser ? (
-              <>
-                <span className="text-steel text-sm">Hi, {currentUser.name}</span>
-                <button onClick={() => { handleLogout(); setIsMenuOpen(false) }} className="text-steel hover:text-ember text-sm text-left">
-                  Log Out
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => { setIsAuthModalOpen(true); setIsMenuOpen(false) }}
-                className="bg-ember text-chalk px-4 py-1.5 rounded-lg text-sm font-medium w-fit"
-              >
-                Log In
-              </button>
-            )}
-          </div>
-        )}
-      </nav>
+      <Sidebar
+        myWorkout={myWorkout}
+        currentUser={currentUser}
+        isCheckingAuth={isCheckingAuth}
+        isMenuOpen={isMenuOpen}
+        setIsMenuOpen={setIsMenuOpen}
+        onRequestLogin={() => setIsAuthModalOpen(true)}
+        onLogout={handleLogout}
+      />
 
       <AuthModal
         isOpen={isAuthModalOpen}
@@ -252,48 +190,49 @@ function App() {
         onSignup={handleSignup}
       />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/exercises" element={<ExerciseList />} />
-        <Route
-          path="/exercise/:id"
-          element={
-            <ExerciseDetail myWorkout={myWorkout} addToWorkout={addToWorkout} />
-          }
-        />
-        <Route
-          path="/my-workout"
-          element={
-            <MyWorkout
-              myWorkout={myWorkout}
-              removeFromWorkout={removeFromWorkout}
-              currentUser={currentUser}
-              onRequestLogin={() => setIsAuthModalOpen(true)}
-            />
-
-          }
-        />
-        
-         <Route
-          path="/log-workout"
-          element={
-            <LogWorkout
-              myWorkout={myWorkout}
-              currentUser={currentUser}
-              onRequestLogin={() => setIsAuthModalOpen(true)}
-            />
-          }
-        />
-        <Route path="/profile" element={<Profile />} />
-                <Route
-          path="/progress"
-          element={<Progress currentUser={currentUser} onRequestLogin={() => setIsAuthModalOpen(true)} />}
-        />
-        <Route path="/streak" element={<Streak />} />
-        <Route path="/goals" element={<BodyGoals />} />
-        <Route path="/community" element={<Community />} />
-      </Routes>
-      <Footer />
+      {/* lg:pl-64 pushes all page content right of the sidebar on desktop.
+          Home.jsx cancels this specifically for its hero video so the video
+          can bleed full-width behind the translucent sidebar. */}
+      <main className="lg:pl-64">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/exercises" element={<ExerciseList />} />
+          <Route
+            path="/exercise/:id"
+            element={<ExerciseDetail myWorkout={myWorkout} addToWorkout={addToWorkout} />}
+          />
+          <Route
+            path="/my-workout"
+            element={
+              <MyWorkout
+                myWorkout={myWorkout}
+                removeFromWorkout={removeFromWorkout}
+                currentUser={currentUser}
+                onRequestLogin={() => setIsAuthModalOpen(true)}
+              />
+            }
+          />
+          <Route
+            path="/log-workout"
+            element={
+              <LogWorkout
+                myWorkout={myWorkout}
+                currentUser={currentUser}
+                onRequestLogin={() => setIsAuthModalOpen(true)}
+              />
+            }
+          />
+          <Route path="/profile" element={<Profile />} />
+          <Route
+            path="/progress"
+            element={<Progress currentUser={currentUser} onRequestLogin={() => setIsAuthModalOpen(true)} />}
+          />
+          <Route path="/streak" element={<Streak />} />
+          <Route path="/goals" element={<BodyGoals />} />
+          <Route path="/community" element={<Community />} />
+        </Routes>
+        <Footer />
+      </main>
     </BrowserRouter>
   )
 }

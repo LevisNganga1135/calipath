@@ -32,30 +32,20 @@ function Home() {
   const workoutCount = savedWorkout ? JSON.parse(savedWorkout).length : 0
   const currentStreak = getCurrentStreak()
 
-  // Landing-page gender preference — null until the visitor picks one (or skips).
   const [genderPref, setGenderPref] = useState(() =>
     localStorage.getItem(GENDER_PREF_KEY)
   )
 
-  // Whether to show the one-time toggle prompt. Only shown if no preference
-  // (including "skip") has been recorded yet.
   const [showPrefPrompt, setShowPrefPrompt] = useState(
     () => localStorage.getItem(GENDER_PREF_KEY) === null
   )
 
   function handleSelectPref(pref) {
-    // pref is 'male', 'female', or null (skip). We store even "skip" as an
-    // empty string so we can distinguish "explicitly skipped" from "never asked"
-    // — otherwise the prompt would keep reappearing on every visit.
     localStorage.setItem(GENDER_PREF_KEY, pref ?? '')
     setGenderPref(pref)
     setShowPrefPrompt(false)
   }
 
-  // Video selection:
-  // - 'male'   -> the original hero video
-  // - 'female' -> the female-personalized video
-  // - anything else (unset, or explicitly skipped) -> the neutral default video
   const heroVideoSrc =
     genderPref === 'male'
       ? '/videos/hero-workout.mp4'
@@ -96,10 +86,39 @@ function Home() {
     },
   ]
 
+  const WORKOUT_TEMPLATES = [
+    {
+      name: 'Push Day',
+      focus: 'Chest, Shoulders, Triceps',
+      exercises: 5,
+      color: 'border-ember',
+    },
+    {
+      name: 'Pull Day',
+      focus: 'Back, Biceps',
+      exercises: 5,
+      color: 'border-gold',
+    },
+    {
+      name: 'Leg Day',
+      focus: 'Quads, Hamstrings, Calves',
+      exercises: 4,
+      color: 'border-ember',
+    },
+    {
+      name: 'Full Body Beginner',
+      focus: 'Compound movements, all major groups',
+      exercises: 6,
+      color: 'border-gold',
+    },
+  ]
+
   return (
     <div className="min-h-screen bg-char">
-      {/* Hero section — background video with a dark overlay so text stays readable */}
-      <div className="relative px-8 py-24 text-center border-b border-charcoal-light overflow-hidden">
+      {/* -ml-0 lg:-ml-64 pulls the hero back left, under the sidebar's space,
+          so the video spans truly full-width; the sidebar's translucency
+          means the video shows through it rather than being hidden behind. */}
+      <div className="relative lg:-ml-64 lg:w-[calc(100%+16rem)] px-8 py-24 text-center border-b border-charcoal-light overflow-hidden">
         <video
           key={heroVideoSrc}
           autoPlay
@@ -107,14 +126,12 @@ function Home() {
           muted
           playsInline
           className="absolute inset-0 w-full h-full object-cover opacity-90 brightness-125 contrast-110"
->
+        >
           <source src={heroVideoSrc} type="video/mp4" />
         </video>
-        {/* Dark gradient overlay — lighter than before so the video reads more clearly,
-            but still strong enough at the bottom to keep the headline/button legible */}
         <div className="absolute inset-0 bg-gradient-to-b from-char/40 via-char/50 to-char"></div>
 
-        <div className="relative z-10">
+        <div className="relative z-10 lg:pl-64">
           <h1 className="font-display text-7xl sm:text-8xl tracking-wide text-chalk mb-4">
             FEEL THE BURN
           </h1>
@@ -124,9 +141,6 @@ function Home() {
             track your progress, and build a training streak.
           </p>
 
-          {/* One-time landing-page personalization prompt. Independent of
-              Profile.sex — this only affects which hero video is shown,
-              nothing account- or medical-data-related. */}
           {showPrefPrompt && (
             <div className="flex flex-wrap gap-3 justify-center mb-8">
               <span className="text-steel text-sm w-full mb-1">
@@ -172,6 +186,31 @@ function Home() {
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Starter templates — a quick, inviting entry point for new visitors.
+          These are illustrative splits, not saved data; clicking one leads
+          into Body Goals, where the real curated exercise sets live. */}
+      <div className="max-w-5xl mx-auto px-8 pt-16">
+        <h2 className="font-display text-3xl tracking-wide text-chalk mb-2">
+          POPULAR SPLITS
+        </h2>
+        <p className="text-steel text-sm mb-6">
+          Not sure where to start? Jump into a classic training split.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {WORKOUT_TEMPLATES.map((template) => (
+            <Link
+              key={template.name}
+              to="/goals"
+              className={`bg-charcoal hover:bg-charcoal-light transition-colors rounded-xl p-5 border-l-4 ${template.color}`}
+            >
+              <h3 className="text-chalk font-semibold mb-1">{template.name}</h3>
+              <p className="text-steel text-xs mb-3">{template.focus}</p>
+              <span className="text-steel/60 text-xs font-mono">{template.exercises} exercises</span>
+            </Link>
+          ))}
         </div>
       </div>
 
