@@ -21,6 +21,7 @@ function Streak() {
   // Set true on a successful "mark today" action, then auto-cleared after
   // the animation finishes playing (see the setTimeout in markTodayTrained).
   const [showFlex, setShowFlex] = useState(false)
+  const [calendarDate, setCalendarDate] = useState(new Date())
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(trainedDates))
@@ -105,6 +106,23 @@ function Streak() {
       const d = new Date()
       d.setDate(d.getDate() - i)
       days.push(formatDateLocal(d))
+      
+    }
+    return days
+  }
+    // Returns all days in a given month as an array of date strings (or null
+  // for empty leading/trailing grid cells), laid out Sunday-first like
+  // a standard calendar grid.
+  function getMonthGrid(year, month) {
+    const firstDay = new Date(year, month, 1)
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+    const startWeekday = firstDay.getDay() // 0 = Sunday
+
+    const days = []
+    for (let i = 0; i < startWeekday; i++) days.push(null)
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+      days.push(dateStr)
     }
     return days
   }
@@ -172,7 +190,7 @@ function Streak() {
             </button>
           )}
         </div>
-
+        
         <div className="bg-charcoal rounded-xl p-6">
           <h2 className="font-display text-2xl tracking-wide text-chalk mb-4">
             LAST 7 DAYS
@@ -195,6 +213,53 @@ function Streak() {
                   >
                     {trained ? '✓' : ''}
                   </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="bg-charcoal rounded-xl p-6 mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))}
+              className="text-steel hover:text-chalk transition-colors px-2"
+            >
+              ←
+            </button>
+            <h2 className="font-display text-2xl tracking-wide text-chalk">
+              {calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()}
+            </h2>
+            <button
+              onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))}
+              className="text-steel hover:text-chalk transition-colors px-2"
+            >
+              →
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1.5 mb-1">
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+              <span key={i} className="text-steel/50 text-xs text-center">{d}</span>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1.5">
+            {getMonthGrid(calendarDate.getFullYear(), calendarDate.getMonth()).map((dateStr, i) => {
+              if (!dateStr) return <div key={`empty-${i}`} />
+              const trained = trainedDates.includes(dateStr)
+              const isToday = dateStr === today
+              return (
+                <div
+                  key={dateStr}
+                  title={dateStr}
+                  className={`aspect-square rounded flex items-center justify-center text-[10px] font-mono ${
+                    trained
+                      ? 'bg-ember text-chalk'
+                      : 'bg-charcoal-light text-steel/40'
+                  } ${isToday ? 'ring-1 ring-gold' : ''}`}
+                >
+                  {Number(dateStr.split('-')[2])}
                 </div>
               )
             })}
