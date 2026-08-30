@@ -21,8 +21,8 @@ function Sidebar({ myWorkout, currentUser, isCheckingAuth, isMenuOpen, setIsMenu
 
       {/* Sidebar itself — fixed + translucent so the hero video shows through
           on the Home page. On mobile it's a slide-in drawer. */}
-      <aside
-        className={`fixed top-0 left-0 h-screen w-64 z-50 bg-charcoal/85 backdrop-blur-md border-r border-charcoal-light flex flex-col transition-transform duration-200 ${
+            <aside
+        className={`fixed top-0 left-0 h-screen w-64 z-50 bg-charcoal/40 backdrop-blur-sm border-r border-charcoal-light/50 flex flex-col transition-transform duration-200 ${
           isMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
