@@ -17,6 +17,7 @@ class User(db.Model):
 
     routines = db.relationship("Routine", backref="user", cascade="all, delete-orphan")
     workout_logs = db.relationship("WorkoutLog", backref="user", cascade="all, delete-orphan")
+    workout_sessions = db.relationship("WorkoutSession", backref="user", cascade="all, delete-orphan")
 
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
@@ -65,3 +66,47 @@ class WorkoutLog(db.Model):
             "weight_kg": self.weight_kg,
             "measurement_cm": self.measurement_cm,
         } 
+
+class WorkoutSession(db.Model):
+    __tablename__ = "workout_sessions"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, default="Workout")  # e.g. "Push Day"
+    date = db.Column(db.String, nullable=False)  # ISO date string
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+    sets = db.relationship("SetLog", backref="session", cascade="all, delete-orphan", order_by="SetLog.id")
+
+    def to_dict(self, include_sets=True):
+        data = {
+            "id": self.id,
+            "name": self.name,
+            "date": self.date,
+            "user_id": self.user_id,
+        }
+        if include_sets:
+            data["sets"] = [s.to_dict() for s in self.sets]
+        return data
+
+
+class SetLog(db.Model):
+    __tablename__ = "set_logs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    exercise_id = db.Column(db.Integer, nullable=False)  # wger exercise id
+    exercise_name = db.Column(db.String, nullable=False)
+    set_number = db.Column(db.Integer, nullable=False)
+    weight_kg = db.Column(db.Float, nullable=True)
+    reps = db.Column(db.Integer, nullable=True)
+    session_id = db.Column(db.Integer, db.ForeignKey("workout_sessions.id"), nullable=False)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "exercise_id": self.exercise_id,
+            "exercise_name": self.exercise_name,
+            "set_number": self.set_number,
+            "weight_kg": self.weight_kg,
+            "reps": self.reps,
+        }

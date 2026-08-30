@@ -16,17 +16,19 @@ def create_app():
     JWTManager(app)
     CORS(app, origins=[
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
     "https://calipath-eta.vercel.app",
 ])
-
+    
     from routes.auth import auth_bp
     from routes.routines import routines_bp
     from routes.workout_logs import logs_bp
+    from routes.sessions import sessions_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(routines_bp, url_prefix="/api/routines")
     app.register_blueprint(logs_bp, url_prefix="/api/workout-logs")
-
+    app.register_blueprint(sessions_bp, url_prefix="/api/sessions")
     @app.errorhandler(404)
     def not_found(e):
         return {"error": "Resource not found"}, 404
