@@ -50,11 +50,19 @@ function MyWorkout({ myWorkout, removeFromWorkout, currentUser, onRequestLogin }
   return (
     <div className="min-h-screen bg-char p-8">
       <div className="max-w-3xl mx-auto">
-        <h1 className="font-display text-5xl tracking-wide text-chalk mb-2">
-          MY WORKOUT ({myWorkout.length})
-        </h1>
+        <div className="flex items-center justify-between flex-wrap gap-4 mb-2">
+          <h1 className="font-display text-5xl tracking-wide text-chalk">
+            MY WORKOUT ({myWorkout.length})
+          </h1>
+          <Link
+            to="/log-workout"
+            className="bg-gold hover:bg-gold/90 text-char px-5 py-2.5 rounded-lg font-semibold transition-colors"
+          >
+            ▶ Start Workout
+          </Link>
+        </div>
         <div className="ember-bar mb-6"></div>
-
+        
         <div className="space-y-4">
           {myWorkout.map((exercise) => (
             <div

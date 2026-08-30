@@ -11,6 +11,7 @@ import BodyGoals from './components/BodyGoals'
 import Footer from './components/Footer'
 import Community from './components/Community'
 import AuthModal from './components/AuthModal'
+import LogWorkout from './components/LogWorkout'
 
 // Points at the local Flask dev server for now — this becomes the deployed
 // Render URL once the backend goes live (Day 7).
@@ -266,6 +267,18 @@ function App() {
             <MyWorkout
               myWorkout={myWorkout}
               removeFromWorkout={removeFromWorkout}
+              currentUser={currentUser}
+              onRequestLogin={() => setIsAuthModalOpen(true)}
+            />
+
+          }
+        />
+        
+         <Route
+          path="/log-workout"
+          element={
+            <LogWorkout
+              myWorkout={myWorkout}
               currentUser={currentUser}
               onRequestLogin={() => setIsAuthModalOpen(true)}
             />
