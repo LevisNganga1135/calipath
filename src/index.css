@@ -68,6 +68,15 @@ body {
   animation: flexPop 1.8s ease-out forwards;
 }
 
+/* On desktop, the sidebar occupies the left 256px (16rem), so centering
+   against 50% of the full viewport looks off relative to visible content.
+   Shift right by half the sidebar's width to re-center within the content area. */
+@media (min-width: 1024px) {
+  .flex-pop {
+    left: calc(50% + 8rem);
+  }
+}
+
 @keyframes flexPop {
   0% {
     transform: translate(-50%, 0%) scale(0.2);
