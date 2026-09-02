@@ -18,6 +18,9 @@ class User(db.Model):
     routines = db.relationship("Routine", backref="user", cascade="all, delete-orphan")
     workout_logs = db.relationship("WorkoutLog", backref="user", cascade="all, delete-orphan")
     workout_sessions = db.relationship("WorkoutSession", backref="user", cascade="all, delete-orphan")
+    posts = db.relationship("Post", backref="user", cascade="all, delete-orphan")
+    likes = db.relationship("Like", backref="user", cascade="all, delete-orphan")
+    comments = db.relationship("Comment", backref="user", cascade="all, delete-orphan")
 
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
@@ -109,4 +112,59 @@ class SetLog(db.Model):
             "set_number": self.set_number,
             "weight_kg": self.weight_kg,
             "reps": self.reps,
+        }
+
+class Post(db.Model):
+    __tablename__ = "posts"
+
+    id = db.Column(db.Integer, primary_key=True)
+    image_url = db.Column(db.String, nullable=False)
+    caption = db.Column(db.String, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+    likes = db.relationship("Like", backref="post", cascade="all, delete-orphan")
+    comments = db.relationship("Comment", backref="post", cascade="all, delete-orphan", order_by="Comment.created_at")
+
+    def to_dict(self, current_user_id=None):
+        return {
+            "id": self.id,
+            "image_url": self.image_url,
+            "caption": self.caption,
+            "created_at": self.created_at.isoformat(),
+            "user_id": self.user_id,
+            "author_name": self.user.name,
+            "like_count": len(self.likes),
+            "comment_count": len(self.comments),
+            "liked_by_me": any(l.user_id == current_user_id for l in self.likes) if current_user_id else False,
+        }
+
+
+class Like(db.Model):
+    __tablename__ = "likes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
+
+    # A user can only like a given post once
+    __table_args__ = (db.UniqueConstraint("user_id", "post_id", name="unique_user_post_like"),)
+
+
+class Comment(db.Model):
+    __tablename__ = "comments"
+
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.String, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey("posts.id"), nullable=False)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "body": self.body,
+            "created_at": self.created_at.isoformat(),
+            "user_id": self.user_id,
+            "author_name": self.user.name,
         }
