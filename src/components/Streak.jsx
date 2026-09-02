@@ -33,20 +33,15 @@ function Streak() {
   function markTodayTrained() {
   if (isTodayLogged) return
   setTrainedDates((prev) => [...prev, today].sort())
-
-   // Same sidebar-offset issue as the flex-pop CSS: confetti's origin.x is a
-  // fraction of the FULL window width, so on desktop (sidebar visible) we
-  // shift it right to center within the visible content area instead.
-  const isDesktop = window.innerWidth >= 1024
-  const originX = isDesktop ? 0.5 + 128 / window.innerWidth : 0.5
+  
 
   confetti({
     particleCount: 120,
     spread: 70,
-    origin: { x: originX, y: 0.6 },
+    origin: { y: 0.6 },
     colors: ['#ff5a1f', '#ffd23f', '#f5f3ef'],
   })
-  
+
 
   // Celebration sound — fire-and-forget; if the browser blocks autoplay
   // audio (rare here since it's triggered by a real user click) this
@@ -197,7 +192,7 @@ function Streak() {
             </button>
           )}
         </div>
-
+        
         <div className="bg-charcoal rounded-xl p-6">
           <h2 className="font-display text-2xl tracking-wide text-chalk mb-4">
             LAST 7 DAYS
