@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from models import db, User
+import cloudinary.uploader
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -49,4 +50,61 @@ def me():
     user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
-    return jsonify(user.to_dict()), 200 
+    return jsonify(user.to_dict()), 200
+
+
+@auth_bp.route("/me", methods=["PATCH"])
+@jwt_required()
+def update_me():
+    """Updates editable profile fields — currently just the display name.
+    Email/password changes aren't handled here on purpose (they need extra
+    verification steps this endpoint doesn't do)."""
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    data = request.get_json() or {}
+    new_name = (data.get("name") or "").strip()
+
+    if not new_name:
+        return jsonify({"error": "name is required"}), 400
+
+    user.name = new_name
+    db.session.commit()
+
+    return jsonify(user.to_dict()), 200
+
+
+@auth_bp.route("/me/avatar", methods=["POST"])
+@jwt_required()
+def upload_avatar():
+    """Uploads a profile photo to Cloudinary and saves its URL on the user.
+    Mirrors the posts.py upload pattern, using a separate folder so avatars
+    and post images don't mix."""
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if "avatar" not in request.files:
+        return jsonify({"error": "No avatar file provided"}), 400
+
+    avatar_file = request.files["avatar"]
+    if avatar_file.filename == "":
+        return jsonify({"error": "No file selected"}), 400
+
+    try:
+        # Reusing the same public_id per user overwrites their previous
+        # avatar in Cloudinary instead of accumulating a new image every time.
+        result = cloudinary.uploader.upload(
+            avatar_file,
+            folder="feel_the_burn_avatars",
+            public_id=f"user_{user.id}",
+            overwrite=True,
+        )
+        user.avatar_url = result["secure_url"]
+        db.session.commit()
+        return jsonify(user.to_dict()), 200
+    except Exception as e:
+        return jsonify({"error": f"Upload failed: {str(e)}"}), 500

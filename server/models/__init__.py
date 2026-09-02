@@ -13,6 +13,7 @@ class User(db.Model):
     name = db.Column(db.String, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
     password_hash = db.Column(db.String, nullable=False)
+    avatar_url = db.Column(db.String, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     routines = db.relationship("Routine", backref="user", cascade="all, delete-orphan")
@@ -29,7 +30,12 @@ class User(db.Model):
         return bcrypt.check_password_hash(self.password_hash, password)
 
     def to_dict(self):
-        return {"id": self.id, "name": self.name, "email": self.email}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+            "avatar_url": self.avatar_url,
+        }
 
 
 class Routine(db.Model):
