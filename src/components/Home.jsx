@@ -169,7 +169,7 @@ function Home() {
 
           <Link
             to="/exercises"
-            className="inline-block bg-ember hover:bg-ember-dark text-chalk px-8 py-3 rounded-lg font-semibold text-lg transition-colors"
+            className="inline-block bg-ember hover:bg-ember-dark text-chalk px-8 py-3 rounded-lg font-semibold text-lg transition-all hover:scale-105 hover:shadow-lg hover:shadow-ember/30"
           >
             Browse Exercises
           </Link>
@@ -204,11 +204,20 @@ function Home() {
             <Link
               key={template.name}
               to="/goals"
-              className={`bg-charcoal hover:bg-charcoal-light transition-colors rounded-xl p-5 border-l-4 ${template.color}`}
+              className={`group relative bg-charcoal hover:bg-charcoal-light transition-all duration-300 rounded-xl p-5 border-l-4 ${template.color} hover:-translate-y-1 hover:shadow-lg hover:shadow-black/40`}
             >
-              <h3 className="text-chalk font-semibold mb-1">{template.name}</h3>
+              <h3 className="text-chalk font-semibold mb-1 transition-colors group-hover:text-ember">
+                {template.name}
+              </h3>
               <p className="text-steel text-xs mb-3">{template.focus}</p>
-              <span className="text-steel/60 text-xs font-mono">{template.exercises} exercises</span>
+              <div className="flex items-center justify-between">
+                <span className="text-steel/60 text-xs font-mono">
+                  {template.exercises} exercises
+                </span>
+                <span className="text-ember text-sm opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                  →
+                </span>
+              </div>
             </Link>
           ))}
         </div>
@@ -221,13 +230,25 @@ function Home() {
             <Link
               key={feature.to}
               to={feature.to}
-              className="bg-charcoal rounded-xl p-6 hover:bg-charcoal-light transition-colors block border border-transparent hover:border-ember/30"
+              className="group relative bg-charcoal rounded-xl p-6 transition-all duration-300 block border border-transparent overflow-hidden hover:bg-charcoal-light hover:border-ember/30 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-ember/10"
             >
-              <div className="ember-bar mb-4"></div>
-              <h2 className="text-chalk font-semibold text-lg mb-2">
-                {feature.title}
-              </h2>
-              <p className="text-steel text-sm">{feature.description}</p>
+              {/* Soft radial glow that fades in behind the content on hover */}
+              <div className="pointer-events-none absolute -inset-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(circle_at_top_left,_rgba(255,90,31,0.08),_transparent_60%)]" />
+
+              <div className="relative">
+                <div className="ember-bar mb-4 transition-all duration-300 group-hover:w-24" />
+
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-chalk font-semibold text-lg transition-colors group-hover:text-ember">
+                    {feature.title}
+                  </h2>
+                  <span className="text-ember text-lg opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                    →
+                  </span>
+                </div>
+
+                <p className="text-steel text-sm">{feature.description}</p>
+              </div>
             </Link>
           ))}
         </div>
