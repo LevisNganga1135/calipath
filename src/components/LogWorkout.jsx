@@ -182,10 +182,7 @@ function LogWorkout({ myWorkout, currentUser, onRequestLogin }) {
         </div>
         <div className="ember-bar mb-6"></div>
 
-    <WorkoutPlaylist /> 
-     <form onSubmit={handleAddSet} className="bg-charcoal rounded-xl p-6 mb-6"></form>
-     
-
+        <WorkoutPlaylist />
 
         <form onSubmit={handleAddSet} className="bg-charcoal rounded-xl p-6 mb-6">
           <label className="block text-steel text-sm mb-1">Exercise</label>
@@ -201,6 +198,33 @@ function LogWorkout({ myWorkout, currentUser, onRequestLogin }) {
               </option>
             ))}
           </select>
+
+          {/* Selected exercise preview — shows the thumbnail saved on the
+              Routine when it was added from the exercise library, so the
+              user can visually confirm the right movement before logging sets. */}
+          {selectedExercise && (
+            <div className="flex items-center gap-3 bg-char rounded-lg p-3 mb-3">
+              {selectedExercise.thumbnail ? (
+                <img
+                  src={selectedExercise.thumbnail}
+                  alt={selectedExercise.exercise_name}
+                  className="w-14 h-14 object-cover rounded-lg shrink-0"
+                />
+              ) : (
+                <div className="w-14 h-14 bg-gradient-to-br from-charcoal-light to-char rounded-lg flex items-center justify-center shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6 text-steel/40">
+                    <path d="M2 12h2M4 8v8M6 6v12M8 10v4M16 10v4M18 6v12M20 8v8M22 12h-2" strokeLinecap="round" />
+                  </svg>
+                </div>
+              )}
+              <div>
+                <p className="text-chalk font-medium">{selectedExercise.exercise_name}</p>
+                {selectedExercise.category && (
+                  <p className="text-steel text-xs">{selectedExercise.category}</p>
+                )}
+              </div>
+            </div>
+          )}
 
           {lastLogged && (
             <p className="text-steel text-xs mb-3">
