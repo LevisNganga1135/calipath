@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const STORAGE_KEY = 'feelTheBurn.profile'
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:5555/api'
+const TOKEN_KEY = 'feelTheBurn.token'
 
 const ACTIVITY_LEVELS = {
   sedentary: { label: 'Sedentary (little/no exercise)', multiplier: 1.2 },
@@ -10,9 +12,10 @@ const ACTIVITY_LEVELS = {
 }
 
 // currentUser is optional so this page still works for a signed-out visitor
-// exploring the diet calculator — the header just falls back to a generic
-// greeting when there's no logged-in user yet.
-function Profile({ currentUser }) {
+// exploring the diet calculator. onUpdateUser lets this page push a fresh
+// user object back up to App.jsx after a name/avatar change, so the rest of
+// the app (e.g. the Sidebar greeting) stays in sync without a page reload.
+function Profile({ currentUser, onUpdateUser }) {
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
     return saved
@@ -32,13 +35,93 @@ function Profile({ currentUser }) {
 
   const [mealPlanGoal, setMealPlanGoal] = useState('maintenance')
 
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [nameInput, setNameInput] = useState(currentUser?.name ?? '')
+  const [isSavingName, setIsSavingName] = useState(false)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const [profileError, setProfileError] = useState('')
+  const fileInputRef = useRef(null)
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(profile))
   }, [profile])
 
+  useEffect(() => {
+    setNameInput(currentUser?.name ?? '')
+  }, [currentUser?.name])
+
   function handleChange(e) {
     const { name, value } = e.target
     setProfile((prev) => ({ ...prev, [name]: value }))
+  }
+
+  async function handleSaveName() {
+    const trimmed = nameInput.trim()
+    if (!trimmed || trimmed === currentUser?.name) {
+      setIsEditingName(false)
+      return
+    }
+
+    const token = localStorage.getItem(TOKEN_KEY)
+    setIsSavingName(true)
+    setProfileError('')
+
+    try {
+      const response = await fetch(`${API_BASE}/auth/me`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: trimmed }),
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        setProfileError(data.error || 'Failed to update name')
+        return
+      }
+
+      onUpdateUser?.(data)
+      setIsEditingName(false)
+    } catch (err) {
+      setProfileError('Network error — is the server running?')
+    } finally {
+      setIsSavingName(false)
+    }
+  }
+
+  async function handleAvatarSelected(e) {
+    const file = e.target.files[0]
+    if (!file) return
+
+    const token = localStorage.getItem(TOKEN_KEY)
+    const formData = new FormData()
+    formData.append('avatar', file)
+
+    setIsUploadingAvatar(true)
+    setProfileError('')
+
+    try {
+      const response = await fetch(`${API_BASE}/auth/me/avatar`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        setProfileError(data.error || 'Failed to upload photo')
+        return
+      }
+
+      onUpdateUser?.(data)
+    } catch (err) {
+      setProfileError('Network error — is the server running?')
+    } finally {
+      setIsUploadingAvatar(false)
+      e.target.value = '' // allow re-selecting the same file later
+    }
   }
 
   function getHeightInCm() {
@@ -133,21 +216,103 @@ function Profile({ currentUser }) {
   return (
     <div className="min-h-screen bg-char p-8">
       <div className="max-w-4xl mx-auto">
-        {/* Profile header — avatar + the actual logged-in user's name/email.
-            Falls back gracefully when signed out (currentUser is null). */}
+        {/* Profile header — clickable avatar (upload) + editable name */}
         <div className="bg-charcoal rounded-xl p-6 mb-6 flex items-center gap-5">
-          <div className="w-20 h-20 shrink-0 rounded-full bg-ember flex items-center justify-center">
-            <span className="font-display text-3xl text-chalk tracking-wide">
-              {initials}
-            </span>
-          </div>
-          <div className="min-w-0">
-            <h1 className="font-display text-4xl tracking-wide text-chalk truncate">
-              {currentUser?.name ?? 'YOUR PROFILE'}
-            </h1>
+          <button
+            type="button"
+            onClick={() => currentUser && fileInputRef.current?.click()}
+            disabled={!currentUser || isUploadingAvatar}
+            className="relative w-20 h-20 shrink-0 rounded-full overflow-hidden group disabled:cursor-default"
+            title={currentUser ? 'Change photo' : undefined}
+          >
+            {currentUser?.avatar_url ? (
+              <img
+                src={currentUser.avatar_url}
+                alt={currentUser.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-ember flex items-center justify-center">
+                <span className="font-display text-3xl text-chalk tracking-wide">
+                  {initials}
+                </span>
+              </div>
+            )}
+
+            {currentUser && (
+              <div
+                className={`absolute inset-0 bg-black/60 flex items-center justify-center transition-opacity ${
+                  isUploadingAvatar ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                }`}
+              >
+                <span className="text-chalk text-xs font-medium">
+                  {isUploadingAvatar ? 'Uploading...' : 'Change'}
+                </span>
+              </div>
+            )}
+          </button>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarSelected}
+            className="hidden"
+          />
+
+          <div className="min-w-0 flex-1">
+            {isEditingName ? (
+              <div className="flex items-center gap-2 mb-1">
+                <input
+                  type="text"
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
+                  autoFocus
+                  className="font-display text-2xl tracking-wide text-chalk bg-charcoal-light px-3 py-1 rounded-lg focus:outline-none focus:ring-1 focus:ring-ember min-w-0"
+                />
+                <button
+                  onClick={handleSaveName}
+                  disabled={isSavingName}
+                  className="bg-ember hover:bg-ember-dark text-chalk px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-60"
+                >
+                  {isSavingName ? '...' : 'Save'}
+                </button>
+                <button
+                  onClick={() => {
+                    setNameInput(currentUser?.name ?? '')
+                    setIsEditingName(false)
+                    setProfileError('')
+                  }}
+                  className="text-steel hover:text-chalk text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="font-display text-4xl tracking-wide text-chalk truncate">
+                  {currentUser?.name ?? 'YOUR PROFILE'}
+                </h1>
+                {currentUser && (
+                  <button
+                    onClick={() => setIsEditingName(true)}
+                    className="text-steel hover:text-ember text-sm shrink-0"
+                    title="Edit name"
+                  >
+                    ✎
+                  </button>
+                )}
+              </div>
+            )}
+
             <p className="text-steel text-sm truncate">
               {currentUser?.email ?? 'Sign in to save your profile to your account.'}
             </p>
+
+            {profileError && (
+              <p className="text-ember text-xs mt-1">{profileError}</p>
+            )}
           </div>
         </div>
 
@@ -291,9 +456,7 @@ function Profile({ currentUser }) {
             )}
           </div>
 
-          {/* Right column: calculated results — only appears once there's
-              something to show, so the page doesn't open on a wall of
-              empty cards. */}
+          {/* Right column: calculated results */}
           <div>
             {dietEstimate ? (
               <>

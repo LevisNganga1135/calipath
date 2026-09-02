@@ -227,7 +227,10 @@ function App() {
               />
             }
           />
-          <Route path="/profile" element={<Profile currentUser={currentUser} />} />
+          <Route
+  path="/profile"
+  element={<Profile currentUser={currentUser} onUpdateUser={setCurrentUser} />}
+/>
           <Route
             path="/progress"
             element={<Progress currentUser={currentUser} onRequestLogin={() => setIsAuthModalOpen(true)} />}
