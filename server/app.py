@@ -25,12 +25,15 @@ def create_app():
     from routes.workout_logs import logs_bp
     from routes.sessions import sessions_bp
     from routes.posts import posts_bp
+     
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(routines_bp, url_prefix="/api/routines")
     app.register_blueprint(logs_bp, url_prefix="/api/workout-logs")
     app.register_blueprint(sessions_bp, url_prefix="/api/sessions")
     app.register_blueprint(posts_bp, url_prefix="/api/posts")
+    
+
     @app.errorhandler(404)
     def not_found(e):
         return {"error": "Resource not found"}, 404

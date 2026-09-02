@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import WorkoutPlaylist from './WorkoutPlaylist'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:5555/api'
 const TOKEN_KEY = 'feelTheBurn.token'
@@ -180,6 +181,11 @@ function LogWorkout({ myWorkout, currentUser, onRequestLogin }) {
           </Link>
         </div>
         <div className="ember-bar mb-6"></div>
+
+    <WorkoutPlaylist /> 
+     <form onSubmit={handleAddSet} className="bg-charcoal rounded-xl p-6 mb-6"></form>
+     
+
 
         <form onSubmit={handleAddSet} className="bg-charcoal rounded-xl p-6 mb-6">
           <label className="block text-steel text-sm mb-1">Exercise</label>
