@@ -13,6 +13,7 @@ import Footer from './components/Footer'
 import Community from './components/Community'
 import AuthModal from './components/AuthModal'
 import Sidebar from './components/Sidebar'
+import CoachChat from './components/CoachChat'
 
 // Points at the local Flask dev server for now — this becomes the deployed
 // Render URL once the backend goes live (Day 7).
@@ -170,7 +171,7 @@ function App() {
   }
 
 
-  
+
   return (
     <BrowserRouter>
       <Sidebar
@@ -189,6 +190,10 @@ function App() {
         onLogin={handleLogin}
         onSignup={handleSignup}
       />
+
+    <CoachChat />
+
+    
 
       {/* lg:pl-64 pushes all page content right of the sidebar on desktop.
           Home.jsx cancels this specifically for its hero video so the video

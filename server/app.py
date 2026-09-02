@@ -25,6 +25,7 @@ def create_app():
     from routes.workout_logs import logs_bp
     from routes.sessions import sessions_bp
     from routes.posts import posts_bp
+    from routes.coach import coach_bp
      
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -32,6 +33,7 @@ def create_app():
     app.register_blueprint(logs_bp, url_prefix="/api/workout-logs")
     app.register_blueprint(sessions_bp, url_prefix="/api/sessions")
     app.register_blueprint(posts_bp, url_prefix="/api/posts")
+    app.register_blueprint(coach_bp, url_prefix="/api/coach")
     
 
     @app.errorhandler(404)
