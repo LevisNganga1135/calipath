@@ -124,7 +124,19 @@ function Community({ currentUser, onRequestLogin }) {
       console.error('Failed to toggle like:', err)
     }
   }
-
+    async function handleDeletePost(postId) {
+    const token = localStorage.getItem(TOKEN_KEY)
+    try {
+      const res = await fetch(`${API_BASE}/posts/${postId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) return
+      setPosts((prev) => prev.filter((p) => p.id !== postId))
+    } catch (err) {
+      console.error('Failed to delete post:', err)
+    }
+  }
   function toggleComments(postId) {
     if (expandedPostId === postId) {
       setExpandedPostId(null)
@@ -249,7 +261,7 @@ function Community({ currentUser, onRequestLogin }) {
                             <div className="space-y-6">
                 {posts.map((post) => (
                   <div key={post.id} className="bg-charcoal rounded-xl overflow-hidden">
-                    {/* Header — avatar + username + timestamp, IG-style */}
+                                       {/* Header — avatar + username + timestamp, IG-style */}
                     <div className="flex items-center gap-3 p-3">
                       {post.author_avatar ? (
                         <img
@@ -264,10 +276,22 @@ function Community({ currentUser, onRequestLogin }) {
                           </span>
                         </div>
                       )}
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="text-chalk font-semibold text-sm truncate">{post.author_name}</p>
                         <p className="text-steel/60 text-xs">{timeAgo(post.created_at)}</p>
                       </div>
+
+                      {currentUser?.id === post.user_id && (
+                        <button
+                          onClick={() => {
+                            if (window.confirm('Delete this post?')) handleDeletePost(post.id)
+                          }}
+                          className="text-steel hover:text-ember text-sm shrink-0"
+                          aria-label="Delete post"
+                        >
+                          🗑
+                        </button>
+                      )}
                     </div>
 
                     <img src={post.image_url} alt={post.caption || 'Post'} className="w-full max-h-96 object-cover" />
