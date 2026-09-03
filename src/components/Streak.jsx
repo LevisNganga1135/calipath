@@ -33,15 +33,20 @@ function Streak() {
   function markTodayTrained() {
   if (isTodayLogged) return
   setTrainedDates((prev) => [...prev, today].sort())
-  
+
+  // Same sidebar-offset issue as .flex-pop — canvas-confetti centers on the
+  // full window, not the visible content area, so nudge origin.x right by
+  // half the sidebar's width (16rem → 128px) at the lg breakpoint and up.
+  const isDesktop = window.innerWidth >= 1024
+  const confettiOriginX = isDesktop ? 0.5 + 128 / window.innerWidth : 0.5
 
   confetti({
     particleCount: 120,
     spread: 70,
-    origin: { y: 0.6 },
+    origin: { x: confettiOriginX, y: 0.6 },
     colors: ['#ff5a1f', '#ffd23f', '#f5f3ef'],
   })
-
+  
 
   // Celebration sound — fire-and-forget; if the browser blocks autoplay
   // audio (rare here since it's triggered by a real user click) this
