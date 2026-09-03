@@ -140,6 +140,7 @@ class Post(db.Model):
             "created_at": self.created_at.isoformat(),
             "user_id": self.user_id,
             "author_name": self.user.name,
+            "author_avatar": self.user.avatar_url,
             "like_count": len(self.likes),
             "comment_count": len(self.comments),
             "liked_by_me": any(l.user_id == current_user_id for l in self.likes) if current_user_id else False,
@@ -173,4 +174,5 @@ class Comment(db.Model):
             "created_at": self.created_at.isoformat(),
             "user_id": self.user_id,
             "author_name": self.user.name,
+            "author_avatar": self.user.avatar_url,
         }
