@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import RightRail from './RightRail'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:5555/api'
 const TOKEN_KEY = 'feelTheBurn.token'
@@ -184,8 +185,10 @@ function Community({ currentUser, onRequestLogin }) {
   }
 
   return (
-    <div className="min-h-screen bg-char p-8">
-      <div className="max-w-2xl mx-auto">
+      <div className="min-h-screen bg-char p-8">
+      <div className="max-w-5xl mx-auto flex gap-8 items-start">
+      <div className="flex-1 max-w-2xl">
+      
         <h1 className="font-display text-5xl tracking-wide text-chalk mb-2">
           COMMUNITY
         </h1>
@@ -413,8 +416,11 @@ function Community({ currentUser, onRequestLogin }) {
           </>
         )}
       </div>
+      <RightRail currentUser={currentUser} onRequestLogin={onRequestLogin} />
     </div>
+    </div>
+    
   )
 }
-
+   
 export default Community
