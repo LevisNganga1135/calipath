@@ -185,10 +185,12 @@ function Community({ currentUser, onRequestLogin }) {
   }
 
   return (
-      <div className="min-h-screen bg-char p-8">
-      <div className="max-w-5xl mx-auto flex gap-8 items-start">
-      <div className="flex-1 max-w-2xl">
-      
+    <div className="min-h-screen bg-char p-8">
+      <RightRail currentUser={currentUser} onRequestLogin={onRequestLogin} />
+
+      {/* xl:pr-72 reserves space on the right so this content doesn't sit
+          under the fixed RightRail once it appears at the xl breakpoint. */}
+      <div className="max-w-2xl mx-auto xl:pr-72">
         <h1 className="font-display text-5xl tracking-wide text-chalk mb-2">
           COMMUNITY
         </h1>
@@ -416,11 +418,9 @@ function Community({ currentUser, onRequestLogin }) {
           </>
         )}
       </div>
-      <RightRail currentUser={currentUser} onRequestLogin={onRequestLogin} />
-    </div>
     </div>
     
   )
 }
-   
+
 export default Community
