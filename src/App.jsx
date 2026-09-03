@@ -237,7 +237,10 @@ function App() {
           />
           <Route path="/streak" element={<Streak />} />
           <Route path="/goals" element={<BodyGoals />} />
-          <Route path="/community" element={<Community />} />
+                    <Route
+            path="/community"
+            element={<Community currentUser={currentUser} onRequestLogin={() => setIsAuthModalOpen(true)} />}
+          />
         </Routes>
         <Footer />
       </main>
