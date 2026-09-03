@@ -200,7 +200,10 @@ function App() {
           can bleed full-width behind the translucent sidebar. */}
       <main className="lg:pl-64">
         <Routes>
-          <Route path="/" element={<Home />} />
+         <Route
+  path="/"
+  element={<Home currentUser={currentUser} onRequestLogin={() => setIsAuthModalOpen(true)} />}
+/>
           <Route path="/exercises" element={<ExerciseList />} />
           <Route
             path="/exercise/:id"
