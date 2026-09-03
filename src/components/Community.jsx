@@ -3,6 +3,20 @@ import { useState, useEffect } from 'react'
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:5555/api'
 const TOKEN_KEY = 'feelTheBurn.token'
 
+// Converts an ISO timestamp into a short relative label, IG-style.
+function timeAgo(isoString) {
+  const seconds = Math.floor((new Date() - new Date(isoString)) / 1000)
+  if (seconds < 60) return 'just now'
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+  return new Date(isoString).toLocaleDateString()
+}
+
+
 const MOCK_LEADERBOARD = [
   { name: 'Jamal K.', streak: 42 },
   { name: 'Aisha M.', streak: 31 },
@@ -232,37 +246,91 @@ function Community({ currentUser, onRequestLogin }) {
             ) : posts.length === 0 ? (
               <p className="text-steel text-center">No posts yet — be the first to share!</p>
             ) : (
-              <div className="space-y-6">
+                            <div className="space-y-6">
                 {posts.map((post) => (
                   <div key={post.id} className="bg-charcoal rounded-xl overflow-hidden">
+                    {/* Header — avatar + username + timestamp, IG-style */}
+                    <div className="flex items-center gap-3 p-3">
+                      {post.author_avatar ? (
+                        <img
+                          src={post.author_avatar}
+                          alt={post.author_name}
+                          className="w-9 h-9 rounded-full object-cover shrink-0"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-ember flex items-center justify-center shrink-0">
+                          <span className="text-chalk text-xs font-bold">
+                            {post.author_name?.[0]?.toUpperCase() ?? '?'}
+                          </span>
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-chalk font-semibold text-sm truncate">{post.author_name}</p>
+                        <p className="text-steel/60 text-xs">{timeAgo(post.created_at)}</p>
+                      </div>
+                    </div>
+
                     <img src={post.image_url} alt={post.caption || 'Post'} className="w-full max-h-96 object-cover" />
+
                     <div className="p-4">
-                      <p className="text-chalk font-semibold mb-1">{post.author_name}</p>
-                      {post.caption && <p className="text-steel text-sm mb-3">{post.caption}</p>}
-                      <div className="flex items-center gap-4">
+                      {/* Action row — icon-style buttons, IG-style ordering */}
+                      <div className="flex items-center gap-4 mb-2">
                         <button
                           onClick={() => handleToggleLike(post.id)}
-                          className={`text-sm transition-colors ${
-                            post.liked_by_me ? 'text-ember' : 'text-steel hover:text-ember'
+                          className={`text-xl transition-transform hover:scale-110 ${
+                            post.liked_by_me ? '' : 'grayscale opacity-70'
                           }`}
+                          aria-label="Like"
                         >
-                          {post.liked_by_me ? '🔥' : '🤍'} {post.like_count}
+                          🔥
                         </button>
                         <button
                           onClick={() => toggleComments(post.id)}
-                          className="text-steel hover:text-chalk text-sm transition-colors"
+                          className="text-xl transition-transform hover:scale-110 opacity-70"
+                          aria-label="Comment"
                         >
-                          💬 {post.comment_count}
+                          💬
                         </button>
                       </div>
 
+                      {post.like_count > 0 && (
+                        <p className="text-chalk text-sm font-semibold mb-1">
+                          {post.like_count} {post.like_count === 1 ? 'like' : 'likes'}
+                        </p>
+                      )}
+
+                      {post.caption && (
+                        <p className="text-sm mb-1">
+                          <span className="text-chalk font-semibold">{post.author_name}</span>{' '}
+                          <span className="text-steel">{post.caption}</span>
+                        </p>
+                      )}
+
+                      {post.comment_count > 0 && expandedPostId !== post.id && (
+                        <button
+                          onClick={() => toggleComments(post.id)}
+                          className="text-steel/60 text-sm hover:text-steel transition-colors"
+                        >
+                          View all {post.comment_count} comments
+                        </button>
+                      )}
+
                       {expandedPostId === post.id && (
-                        <div className="mt-4 pt-4 border-t border-charcoal-light space-y-2">
+                        <div className="mt-3 pt-3 border-t border-charcoal-light space-y-2">
                           {(commentsByPost[post.id] || []).map((c) => (
-                            <p key={c.id} className="text-sm">
-                              <span className="text-chalk font-medium">{c.author_name}: </span>
-                              <span className="text-steel">{c.body}</span>
-                            </p>
+                            <div key={c.id} className="flex items-start gap-2">
+                              {c.author_avatar ? (
+                                <img src={c.author_avatar} alt={c.author_name} className="w-6 h-6 rounded-full object-cover shrink-0 mt-0.5" />
+                              ) : (
+                                <div className="w-6 h-6 rounded-full bg-charcoal-light flex items-center justify-center shrink-0 mt-0.5">
+                                  <span className="text-steel text-[10px] font-bold">{c.author_name?.[0]?.toUpperCase() ?? '?'}</span>
+                                </div>
+                              )}
+                              <p className="text-sm">
+                                <span className="text-chalk font-medium">{c.author_name}</span>{' '}
+                                <span className="text-steel">{c.body}</span>
+                              </p>
+                            </div>
                           ))}
                           <div className="flex gap-2 mt-3">
                             <input
