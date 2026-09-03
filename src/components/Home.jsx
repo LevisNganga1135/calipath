@@ -137,7 +137,7 @@ function Home({ currentUser, onRequestLogin }) {
         </video>
         <div className="absolute inset-0 bg-gradient-to-b from-char/40 via-char/50 to-char"></div>
 
-        <div className="relative z-10 lg:pl-64">
+        <div className="relative z-10 lg:pl-64 xl:pr-72">
           <h1 className="font-display text-7xl sm:text-8xl tracking-wide text-chalk mb-4">
             FEEL THE BURN
           </h1>
