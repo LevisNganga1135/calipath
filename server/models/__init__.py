@@ -23,6 +23,22 @@ class User(db.Model):
     posts = db.relationship("Post", backref="user", cascade="all, delete-orphan")
     likes = db.relationship("Like", backref="user", cascade="all, delete-orphan")
     comments = db.relationship("Comment", backref="user", cascade="all, delete-orphan")
+        # Self-referential many-to-many via the Follow association table.
+    # Two separate relationships are needed (rather than one simple backref)
+    # because "who I follow" and "who follows me" are different queries over
+    # the same table — foreign_keys= disambiguates which column each side uses.
+    following = db.relationship(
+        "Follow",
+        foreign_keys="Follow.follower_id",
+        backref="follower",
+        cascade="all, delete-orphan",
+    )
+    followers = db.relationship(
+        "Follow",
+        foreign_keys="Follow.followed_id",
+        backref="followed",
+        cascade="all, delete-orphan",
+    )
 
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
@@ -36,6 +52,22 @@ class User(db.Model):
             "name": self.name,
             "email": self.email,
             "avatar_url": self.avatar_url,
+        }
+    def to_public_dict(self, current_user_id=None):
+        """Public-facing profile shape — includes follow counts and whether
+        the requester (if any) already follows this person. Used for
+        anything showing OTHER users (suggested athletes, profile lookups),
+        as opposed to to_dict() which is for the logged-in user's own data."""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "avatar_url": self.avatar_url,
+            "follower_count": len(self.followers),
+            "following_count": len(self.following),
+            "is_following_by_me": (
+                any(f.follower_id == current_user_id for f in self.followers)
+                if current_user_id else False
+            ),
         }
 
 class Passkey(db.Model):
@@ -55,6 +87,17 @@ class Passkey(db.Model):
             "device_name": self.device_name,
             "created_at": self.created_at.isoformat(),
         }
+
+class Follow(db.Model):
+    __tablename__ = "follows"
+
+    id = db.Column(db.Integer, primary_key=True)
+    follower_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)  # the person doing the following
+    followed_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)  # the person being followed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # A user can only follow a given other user once
+    __table_args__ = (db.UniqueConstraint("follower_id", "followed_id", name="unique_follower_followed"),)
 
 class Routine(db.Model):
     __tablename__ = "routines"

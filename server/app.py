@@ -27,6 +27,7 @@ def create_app():
     from routes.posts import posts_bp
     from routes.coach import coach_bp
     from routes.passkeys import passkeys_bp
+    from routes.users import users_bp
      
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -36,7 +37,7 @@ def create_app():
     app.register_blueprint(posts_bp, url_prefix="/api/posts")
     app.register_blueprint(coach_bp, url_prefix="/api/coach")
     app.register_blueprint(passkeys_bp, url_prefix="/api/auth/passkey")
-    
+    app.register_blueprint(users_bp, url_prefix="/api/users")
 
     @app.errorhandler(404)
     def not_found(e):
