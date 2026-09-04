@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, User, Follow
+from models import db, User, Follow, Post
+
 
 users_bp = Blueprint("users", __name__)
 
@@ -38,6 +40,21 @@ def get_user(user_id):
         return jsonify({"error": "User not found"}), 404
 
     return jsonify(user.to_public_dict(current_user_id)), 200
+
+@users_bp.route("/<int:user_id>/posts", methods=["GET"])
+@jwt_required(optional=True)
+def get_user_posts(user_id):
+    """Powers the IG-style profile grid — every post by this specific user,
+    newest first. Reuses Post.to_dict() exactly as the main feed does, so
+    like/comment counts and liked_by_me stay correct on this view too."""
+    current_user_id = get_jwt_identity()
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    posts = Post.query.filter_by(user_id=user_id).order_by(Post.created_at.desc()).all()
+    return jsonify([p.to_dict(current_user_id) for p in posts]), 200
 
 
 @users_bp.route("/<int:user_id>/follow", methods=["POST"])

@@ -14,6 +14,8 @@ import Community from './components/Community'
 import AuthModal from './components/AuthModal'
 import Sidebar from './components/Sidebar'
 import CoachChat from './components/CoachChat'
+import UserProfile from './components/UserProfile'
+
 
 // Points at the local Flask dev server for now — this becomes the deployed
 // Render URL once the backend goes live (Day 7).
@@ -254,6 +256,10 @@ function App() {
             path="/community"
             element={<Community currentUser={currentUser} onRequestLogin={() => setIsAuthModalOpen(true)} />}
           />
+          <Route
+  path="/users/:id"
+  element={<UserProfile currentUser={currentUser} onRequestLogin={() => setIsAuthModalOpen(true)} />}
+/>
         </Routes>
         <Footer />
       </main>

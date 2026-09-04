@@ -162,7 +162,7 @@ function RightRail({ currentUser, onRequestLogin }) {
             <div className="space-y-3">
               {suggested.map((athlete) => (
                 <div key={athlete.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
+                  <Link to={`/users/${athlete.id}`} className="flex items-center gap-2 min-w-0">
                     {athlete.avatar_url ? (
                       <img
                         src={athlete.avatar_url}
@@ -175,12 +175,12 @@ function RightRail({ currentUser, onRequestLogin }) {
                       </div>
                     )}
                     <div className="min-w-0">
-                      <p className="text-chalk text-sm truncate">{athlete.name}</p>
+                      <p className="text-chalk text-sm truncate hover:underline">{athlete.name}</p>
                       <p className="text-steel text-[10px]">
                         {athlete.follower_count} {athlete.follower_count === 1 ? 'follower' : 'followers'}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                   <button
                     onClick={() => handleToggleFollow(athlete.id)}
                     className={`text-xs font-medium shrink-0 ml-2 transition-colors ${

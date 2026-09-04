@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import RightRail from './RightRail'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:5555/api'
@@ -125,7 +126,8 @@ function Community({ currentUser, onRequestLogin }) {
       console.error('Failed to toggle like:', err)
     }
   }
-    async function handleDeletePost(postId) {
+
+  async function handleDeletePost(postId) {
     const token = localStorage.getItem(TOKEN_KEY)
     try {
       const res = await fetch(`${API_BASE}/posts/${postId}`, {
@@ -138,6 +140,7 @@ function Community({ currentUser, onRequestLogin }) {
       console.error('Failed to delete post:', err)
     }
   }
+
   function toggleComments(postId) {
     if (expandedPostId === postId) {
       setExpandedPostId(null)
@@ -263,26 +266,34 @@ function Community({ currentUser, onRequestLogin }) {
             ) : posts.length === 0 ? (
               <p className="text-steel text-center">No posts yet — be the first to share!</p>
             ) : (
-                            <div className="space-y-6">
+              <div className="space-y-6">
                 {posts.map((post) => (
                   <div key={post.id} className="bg-charcoal rounded-xl overflow-hidden">
-                                       {/* Header — avatar + username + timestamp, IG-style */}
+                    {/* Header — avatar + username + timestamp, IG-style */}
                     <div className="flex items-center gap-3 p-3">
-                      {post.author_avatar ? (
-                        <img
-                          src={post.author_avatar}
-                          alt={post.author_name}
-                          className="w-9 h-9 rounded-full object-cover shrink-0"
-                        />
-                      ) : (
-                        <div className="w-9 h-9 rounded-full bg-ember flex items-center justify-center shrink-0">
-                          <span className="text-chalk text-xs font-bold">
-                            {post.author_name?.[0]?.toUpperCase() ?? '?'}
-                          </span>
-                        </div>
-                      )}
+                      <Link to={`/users/${post.user_id}`} className="shrink-0">
+                        {post.author_avatar ? (
+                          <img
+                            src={post.author_avatar}
+                            alt={post.author_name}
+                            className="w-9 h-9 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-ember flex items-center justify-center">
+                            <span className="text-chalk text-xs font-bold">
+                              {post.author_name?.[0]?.toUpperCase() ?? '?'}
+                            </span>
+                          </div>
+                        )}
+                      </Link>
+
                       <div className="min-w-0 flex-1">
-                        <p className="text-chalk font-semibold text-sm truncate">{post.author_name}</p>
+                        <Link
+                          to={`/users/${post.user_id}`}
+                          className="text-chalk font-semibold text-sm truncate hover:underline block"
+                        >
+                          {post.author_name}
+                        </Link>
                         <p className="text-steel/60 text-xs">{timeAgo(post.created_at)}</p>
                       </div>
 
@@ -419,7 +430,7 @@ function Community({ currentUser, onRequestLogin }) {
         )}
       </div>
     </div>
-    
+
   )
 }
 
