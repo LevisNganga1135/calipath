@@ -15,6 +15,7 @@ and we'll adjust.
 """
 
 import os
+import json
 from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
@@ -85,7 +86,12 @@ def register_begin():
         "user_id": user.id,
     })
 
-    return jsonify({"options": options_to_json(options), "token": token}), 200
+    # options_to_json() returns a JSON STRING (pre-serialized to the camelCase
+    # shape @simplewebauthn/browser expects) — json.loads() it back into a
+    # dict before nesting it in our response, otherwise jsonify() would embed
+    # it as a raw string and the frontend's beginData.options.challenge read
+    # would fail with "Cannot read properties of undefined".
+    return jsonify({"options": json.loads(options_to_json(options)), "token": token}), 200
 
 
 @passkeys_bp.route("/register/complete", methods=["POST"])
@@ -141,7 +147,7 @@ def login_begin():
 
     token = _sign_challenge({"challenge": bytes_to_base64url(options.challenge)})
 
-    return jsonify({"options": options_to_json(options), "token": token}), 200
+    return jsonify({"options": json.loads(options_to_json(options)), "token": token}), 200
 
 
 @passkeys_bp.route("/login/complete", methods=["POST"])
