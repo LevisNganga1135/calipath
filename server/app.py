@@ -26,6 +26,7 @@ def create_app():
     from routes.sessions import sessions_bp
     from routes.posts import posts_bp
     from routes.coach import coach_bp
+    from routes.passkeys import passkeys_bp
      
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -34,6 +35,7 @@ def create_app():
     app.register_blueprint(sessions_bp, url_prefix="/api/sessions")
     app.register_blueprint(posts_bp, url_prefix="/api/posts")
     app.register_blueprint(coach_bp, url_prefix="/api/coach")
+    app.register_blueprint(passkeys_bp, url_prefix="/api/auth/passkey")
     
 
     @app.errorhandler(404)

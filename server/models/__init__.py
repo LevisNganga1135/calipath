@@ -17,6 +17,7 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     routines = db.relationship("Routine", backref="user", cascade="all, delete-orphan")
+    passkeys = db.relationship("Passkey", backref="user", cascade="all, delete-orphan")
     workout_logs = db.relationship("WorkoutLog", backref="user", cascade="all, delete-orphan")
     workout_sessions = db.relationship("WorkoutSession", backref="user", cascade="all, delete-orphan")
     posts = db.relationship("Post", backref="user", cascade="all, delete-orphan")
@@ -37,6 +38,23 @@ class User(db.Model):
             "avatar_url": self.avatar_url,
         }
 
+class Passkey(db.Model):
+    __tablename__ = "passkeys"
+
+    id = db.Column(db.Integer, primary_key=True)
+    credential_id = db.Column(db.String, unique=True, nullable=False)  # base64url-encoded
+    public_key = db.Column(db.String, nullable=False)  # base64url-encoded
+    sign_count = db.Column(db.Integer, nullable=False, default=0)
+    device_name = db.Column(db.String, nullable=True)  # e.g. "Chrome on Windows"
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "device_name": self.device_name,
+            "created_at": self.created_at.isoformat(),
+        }
 
 class Routine(db.Model):
     __tablename__ = "routines"

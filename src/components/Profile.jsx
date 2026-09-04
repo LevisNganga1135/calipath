@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { startRegistration } from '@simplewebauthn/browser'
 
 const STORAGE_KEY = 'feelTheBurn.profile'
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:5555/api'
@@ -41,6 +42,11 @@ function Profile({ currentUser, onUpdateUser }) {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [profileError, setProfileError] = useState('')
   const fileInputRef = useRef(null)
+  const [passkeys, setPasskeys] = useState([])
+  const [isLoadingPasskeys, setIsLoadingPasskeys] = useState(false)
+  const [isAddingPasskey, setIsAddingPasskey] = useState(false)
+  const [passkeyError, setPasskeyError] = useState('')
+
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(profile))
@@ -49,6 +55,78 @@ function Profile({ currentUser, onUpdateUser }) {
   useEffect(() => {
     setNameInput(currentUser?.name ?? '')
   }, [currentUser?.name])
+
+  useEffect(() => {
+    if (currentUser) fetchPasskeys()
+  }, [currentUser?.id])
+
+  function fetchPasskeys() {
+    const token = localStorage.getItem(TOKEN_KEY)
+    setIsLoadingPasskeys(true)
+    fetch(`${API_BASE}/auth/passkey`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setPasskeys(data))
+      .catch(() => setPasskeys([]))
+      .finally(() => setIsLoadingPasskeys(false))
+  }
+
+  async function handleAddPasskey() {
+    const token = localStorage.getItem(TOKEN_KEY)
+    setIsAddingPasskey(true)
+    setPasskeyError('')
+
+    try {
+      // Step 1: ask the backend for registration options + a signed challenge
+      const beginRes = await fetch(`${API_BASE}/auth/passkey/register/begin`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const beginData = await beginRes.json()
+      if (!beginRes.ok) throw new Error(beginData.error || 'Could not start passkey registration')
+
+      // Step 2: prompt the browser's passkey UI (Face ID, Windows Hello, etc.)
+      const credential = await startRegistration(beginData.options)
+
+      // Step 3: send the result back to verify and save it
+      const deviceName =
+        window.navigator.userAgentData?.platform || window.navigator.platform || 'This device'
+      const completeRes = await fetch(`${API_BASE}/auth/passkey/register/complete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ credential, token: beginData.token, device_name: deviceName }),
+      })
+      const completeData = await completeRes.json()
+      if (!completeRes.ok) throw new Error(completeData.error || 'Could not save passkey')
+
+      setPasskeys((prev) => [...prev, completeData])
+    } catch (err) {
+      // Browser throws this if the user cancels the prompt — not a real error
+      if (err.name !== 'NotAllowedError') {
+        setPasskeyError(err.message || 'Failed to add passkey')
+      }
+    } finally {
+      setIsAddingPasskey(false)
+    }
+  }
+
+  async function handleDeletePasskey(passkeyId) {
+    const token = localStorage.getItem(TOKEN_KEY)
+    try {
+      const res = await fetch(`${API_BASE}/auth/passkey/${passkeyId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) return
+      setPasskeys((prev) => prev.filter((pk) => pk.id !== passkeyId))
+    } catch (err) {
+      console.error('Failed to delete passkey:', err)
+    }
+  }
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -315,6 +393,53 @@ function Profile({ currentUser, onUpdateUser }) {
             )}
           </div>
         </div>
+
+        {currentUser && (
+          <div className="bg-charcoal rounded-xl p-6 mb-6">
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="font-display text-2xl tracking-wide text-chalk">
+                PASSKEYS
+              </h2>
+              <button
+                onClick={handleAddPasskey}
+                disabled={isAddingPasskey}
+                className="bg-ember hover:bg-ember-dark text-chalk px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-60"
+              >
+                {isAddingPasskey ? 'Adding...' : '+ Add a Passkey'}
+              </button>
+            </div>
+            <p className="text-steel text-xs mb-4">
+              Sign in with Face ID, Windows Hello, or your device's fingerprint sensor instead of a password.
+            </p>
+
+            {passkeyError && <p className="text-ember text-xs mb-3">{passkeyError}</p>}
+
+            {isLoadingPasskeys ? (
+              <p className="text-steel text-sm">Loading...</p>
+            ) : passkeys.length === 0 ? (
+              <p className="text-steel/60 text-sm">No passkeys added yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {passkeys.map((pk) => (
+                  <div key={pk.id} className="flex items-center justify-between bg-char rounded-lg p-3">
+                    <div>
+                      <p className="text-chalk text-sm">{pk.device_name || 'Unnamed device'}</p>
+                      <p className="text-steel/60 text-xs">
+                        Added {new Date(pk.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDeletePasskey(pk.id)}
+                      className="text-steel hover:text-ember text-sm transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Two-column split keeps the form and the results visually
             separate instead of one long stacked page. */}

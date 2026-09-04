@@ -169,7 +169,16 @@ function App() {
     setCurrentUser(null)
     setMyWorkout([])
   }
-
+  
+  
+  // Called by AuthModal once a passkey sign-in completes successfully.
+  // completeData shape matches handleLogin/handleSignup's success case:
+  // { token, user }.
+  function handleAuthSuccess({ token, user }) {
+    localStorage.setItem(TOKEN_KEY, token)
+    setCurrentUser(user)
+    fetchRoutines(token)
+  }
 
 
   return (
@@ -189,6 +198,7 @@ function App() {
         onClose={() => setIsAuthModalOpen(false)}
         onLogin={handleLogin}
         onSignup={handleSignup}
+        onAuthSuccess={handleAuthSuccess} 
       />
 
     <CoachChat />
